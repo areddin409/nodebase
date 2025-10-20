@@ -8,6 +8,6 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    authSignIn: true,
+    autoSignIn: true,
   },
 });
