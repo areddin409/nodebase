@@ -1,7 +1,8 @@
 <div align="center">
-  <img src="public/logos/logo.svg" alt="NodeBase Logo" width="120" height="auto" />
-  
-  # 🚀 NodeBase
+  <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+    <img src="public/logos/logo.svg" alt="NodeBase Logo" width="60" height="auto" />
+    <h1 style="margin: 0; font-size: 3em;">NodeBase</h1>
+  </div>
   
   **A modern, full-stack Next.js application with authentication, database integration, and beautiful UI components**
 
