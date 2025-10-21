@@ -1,12 +1,11 @@
 <div align="center">
-  <img src="public/logos/logo.svg" alt="NodeBase Logo" width="200" height="auto" />
-</div>
+  <img src="public/logos/logo.svg" alt="NodeBase Logo" width="120" height="auto" />
+  
+  # 🚀 NodeBase
+  
+  **A modern, full-stack Next.js application with authentication, database integration, and beautiful UI components**
 
-# 🚀 NodeBase
-
-<div align="center">
-
-**A modern, full-stack Next.js application with authentication, database integration, and beautiful UI components**
+  <br/>
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.1.0-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
