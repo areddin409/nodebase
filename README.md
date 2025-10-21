@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="public/logos/logo.svg" alt="NodeBase Logo" width="200" height="auto" />
+</div>
+
 # 🚀 NodeBase
 
 <div align="center">
