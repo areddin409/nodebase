@@ -1,6 +1,6 @@
 import { serve } from "inngest/next";
 import { inngest } from "@/inngest/client";
-import { helloWorld } from "@/inngest/functions";
+import { execute } from "@/inngest/functions";
 
 /**
  * Inngest API Route Handler
@@ -52,7 +52,7 @@ import { helloWorld } from "@/inngest/functions";
  *
  * export const { GET, POST, PUT } = serve({
  *   client: inngest,
- *   functions: [helloWorld, newFunction],
+ *   functions: [execute, newFunction],
  * });
  * ```
  */
@@ -61,6 +61,6 @@ export const { GET, POST, PUT } = serve({
   functions: [
     // Add all your background functions here
     // Each function added will be automatically registered with Inngest
-    helloWorld,
+    execute,
   ],
 });
