@@ -1,62 +1,51 @@
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { generateText } from "ai";
 import { inngest } from "./client";
 
-/**
- * Inngest Background Functions
- *
- * This file contains all the background functions that handle asynchronous processing
- * in the application. These functions are triggered by events and run independently
- * of the main application flow, making them perfect for:
- *
- * - Email notifications
- * - Data processing workflows
- * - Integration with external APIs
- * - Scheduled tasks
- * - User onboarding flows
- *
- * All functions defined here are automatically registered with the Inngest API
- * endpoint in `/api/inngest/route.ts`
- *
- * @see https://www.inngest.com/docs/functions
- */
+const google = createGoogleGenerativeAI();
+const openai = createOpenAI();
+const anthropic = createAnthropic();
 
-/**
- * Hello World Background Function
- *
- * A simple example function that demonstrates the basic Inngest function structure.
- * This function is triggered by the "test/hello.world" event and includes:
- *
- * - Event data access via `event.data`
- * - Step-based execution with `step.sleep()` for delays
- * - Return values that are logged and can be accessed in the Inngest dashboard
- *
- * Function Configuration:
- * - ID: "hello-world" - Unique identifier for this function
- * - Trigger: "test/hello.world" - Event name that triggers this function
- *
- * @param event - The event object containing data and metadata
- * @param step - Provides step utilities like sleep, run, waitForEvent, etc.
- *
- * @returns Promise<{ message: string }> - Success message with user email
- *
- * @example
- * ```typescript
- * // Trigger this function by sending an event:
- * await inngest.send({
- *   name: "test/hello.world",
- *   data: { email: "user@example.com" }
- * });
- * ```
- *
- * @see https://www.inngest.com/docs/functions/create
- */
-export const helloWorld = inngest.createFunction(
-  { id: "hello-world" },
-  { event: "test/hello.world" },
+export const execute = inngest.createFunction(
+  { id: "execute-ai" },
+  { event: "execute/ai" },
   async ({ event, step }) => {
-    // Add a 1-second delay - useful for rate limiting or processing delays
-    await step.sleep("wait-a-moment", "1s");
+    const { steps: geminiSteps } = await step.ai.wrap(
+      "gemini-generate-text",
+      generateText,
+      {
+        system: "You are a helpful assistant.",
+        prompt: "Generate a creative sonnet about a robot learning to love.",
+        model: google("gemini-2.5-flash"),
+      }
+    );
 
-    // Return a personalized message using the event data
-    return { message: `Hello ${event.data.email}!` };
+    const { steps: openaiSteps } = await step.ai.wrap(
+      "openai-generate-text",
+      generateText,
+      {
+        system: "You are a helpful assistant.",
+        prompt: "Generate a creative sonnet about a robot learning to love.",
+        model: openai("gpt-5"),
+      }
+    );
+
+    const { steps: anthropicSteps } = await step.ai.wrap(
+      "anthropic-generate-text",
+      generateText,
+      {
+        system: "You are a helpful assistant.",
+        prompt: "Generate a creative sonnet about a robot learning to love.",
+        model: anthropic("claude-3-5-haiku-20241022"),
+      }
+    );
+
+    return {
+      geminiSteps,
+      openaiSteps,
+      anthropicSteps,
+    };
   }
 );
