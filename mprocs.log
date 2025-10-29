@@ -1,0 +1,25 @@
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"npm run inngest:dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\0")` failed: The system cannot find the file specified. (os error 2)
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"npm run dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\0")` failed: The system cannot find the file specified. (os error 2)
+WARN [mprocs::app] Ignore input event: FocusLost
+WARN [mprocs::app] Ignore input event: FocusGained
+WARN [mprocs::app] Ignore input event: FocusLost
+WARN [mprocs::app] Ignore input event: FocusGained
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"npm run inngest:dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\0")` failed: The system cannot find the file specified. (os error 2)
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"npm run inngest:dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\0")` failed: The system cannot find the file specified. (os error 2)
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"npm run dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\0")` failed: The system cannot find the file specified. (os error 2)
+WARN [mprocs::app] Ignore input event: FocusLost
+WARN [mprocs::app] Ignore input event: FocusGained
+WARN [mprocs::app] Ignore input event: FocusLost
+WARN [mprocs::app] Ignore input event: FocusGained
+WARN [mprocs::app] Ignore input event: FocusLost
+WARN [mprocs::app] Ignore input event: FocusGained
+WARN [mprocs::app] Ignore input event: FocusLost
+WARN [mprocs::app] Ignore input event: FocusGained
+ERROR [mprocs::error] Error: channel closed
+ERROR [mprocs::error] Error: channel closed
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"bun run inngest:dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\\.\0")` failed: The system cannot find the file specified. (os error 2)
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"bun run dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\\.\0")` failed: The system cannot find the file specified. (os error 2)
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"bun run inngest:dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\\.\0")` failed: The system cannot find the file specified. (os error 2)
+ERROR [portable_pty::win::psuedocon] CreateProcessW `"bun run dev\0"` in cwd `Some("D:\\Web Dev\\2025\\nodebase\\.\0")` failed: The system cannot find the file specified. (os error 2)
+ERROR [mprocs::error] Error: channel closed
+ERROR [mprocs::error] Error: channel closed
