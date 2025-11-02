@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  CreditCardIcon,
-  FolderOpenIcon,
-  HistoryIcon,
-  KeyIcon,
-  LogOutIcon,
-  StarIcon,
-} from "lucide-react";
+import { CreditCardIcon, LogOutIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -23,43 +16,54 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { SIDEBAR_MENU_ITEMS } from "@/lib/constants";
+import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscription";
 
-const menuItems = [
-  {
-    title: "Main",
-    items: [
-      {
-        title: "Workflows",
-        icon: FolderOpenIcon,
-        url: "/workflows",
-      },
-    ],
-  },
-  {
-    title: "Credentials",
-    items: [
-      {
-        title: "Credentials",
-        icon: KeyIcon,
-        url: "/credentials",
-      },
-    ],
-  },
-  {
-    title: "Executions",
-    items: [
-      {
-        title: "Executions",
-        icon: HistoryIcon,
-        url: "/executions",
-      },
-    ],
-  },
-];
-
+/**
+ * Application Sidebar Component
+ *
+ * The main navigation sidebar for the NodeBase application. This component provides:
+ * - Logo and branding in the header
+ * - Dynamic navigation menu based on SIDEBAR_MENU_ITEMS configuration
+ * - Active route highlighting
+ * - Subscription-aware upgrade prompts
+ * - User authentication controls (billing portal, sign out)
+ * - Collapsible design for better UX
+ *
+ * Features:
+ * - Icon-only collapsible mode for space efficiency
+ * - Subscription status integration with upgrade prompts
+ * - Client-side routing with prefetch for better performance
+ * - Tooltip support for collapsed menu items
+ * - Responsive design with proper spacing and typography
+ *
+ * Navigation Structure:
+ * - Header: Logo and app name
+ * - Content: Menu groups (Main, Credentials, Executions)
+ * - Footer: Upgrade prompt, billing portal, sign out
+ *
+ * State Management:
+ * - Uses Next.js router for navigation and active state
+ * - Integrates subscription status for conditional UI
+ * - Handles authentication state changes
+ *
+ * @component
+ * @example
+ * ```tsx
+ * // Used in dashboard layout
+ * <SidebarProvider>
+ *   <AppSidebar />
+ *   <SidebarInset>
+ *     {children}
+ *   </SidebarInset>
+ * </SidebarProvider>
+ * ```
+ */
 export const AppSidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const { hasActiveSubscription, subscription, isLoading } =
+    useHasActiveSubscription();
 
   return (
     <Sidebar collapsible="icon">
@@ -79,7 +83,7 @@ export const AppSidebar = () => {
         </SidebarMenuItem>
       </SidebarHeader>
       <SidebarContent>
-        {menuItems.map(group => (
+        {SIDEBAR_MENU_ITEMS.map(group => (
           <SidebarGroup key={group.title}>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -109,21 +113,23 @@ export const AppSidebar = () => {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip={"Upgrade to Pro"}
-              className="gap-x-4 h-10 px-4"
-              onClick={() => {}}
-            >
-              <StarIcon className="h-4 w-4" />
-              <span>Upgrade to Pro</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {!hasActiveSubscription && !isLoading && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip={"Upgrade to Pro"}
+                className="gap-x-4 h-10 px-4"
+                onClick={() => authClient.checkout({ slug: "Nodebase-Pro" })}
+              >
+                <StarIcon className="h-4 w-4" />
+                <span>Upgrade to Pro</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={"Billing Portal"}
               className="gap-x-4 h-10 px-4"
-              onClick={() => {}}
+              onClick={() => authClient.customer.portal()}
             >
               <CreditCardIcon className="h-4 w-4" />
               <span>Billing Portal</span>

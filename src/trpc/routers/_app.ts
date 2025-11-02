@@ -1,27 +1,61 @@
 import { inngest } from "@/inngest/client";
-import { createTRPCRouter, protectedProcedure } from "../init";
+import {
+  createTRPCRouter,
+  premiumProcedure,
+  protectedProcedure,
+} from "../init";
 import prisma from "@/lib/db";
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 
 /**
- * Main TRPC Router
+ * Main tRPC API Router
  *
- * This file defines the main API router for the application using TRPC.
- * It includes procedures for managing workflows and demonstrates integration
- * with Inngest for background job processing.
+ * This file defines the primary API router for the NodeBase application using tRPC.
+ * It provides type-safe API endpoints with authentication and subscription protection.
  *
  * Key Features:
- * - Type-safe API procedures
- * - Authentication protection via protectedProcedure
- * - Integration with Prisma for database operations
+ * - Type-safe API procedures with full stack type inference
+ * - Authentication protection via protectedProcedure middleware
+ * - Premium subscription validation via premiumProcedure middleware
+ * - Integration with Prisma ORM for database operations
  * - Event-driven background processing with Inngest
+ * - AI functionality integration for premium users
  *
- * @see https://trpc.io/docs/server/routers
+ * Procedure Types:
+ * - protectedProcedure: Requires user authentication
+ * - premiumProcedure: Requires active subscription (extends protectedProcedure)
+ *
+ * @see {@link https://trpc.io/docs/server/routers} tRPC Router Documentation
  */
 
 export const appRouter = createTRPCRouter({
-  testAi: protectedProcedure.mutation(async () => {
+  /**
+   * Test AI Functionality (Premium Only)
+   *
+   * Triggers an AI processing job in the background using Inngest.
+   * This endpoint is protected by premium subscription validation,
+   * ensuring only paying customers can access AI features.
+   *
+   * @procedure mutation
+   * @access premium - Requires active subscription
+   * @returns {Object} Success response with job status
+   * @throws {TRPCError} UNAUTHORIZED if user not authenticated
+   * @throws {TRPCError} FORBIDDEN if user has no active subscription
+   *
+   * @example
+   * ```typescript
+   * // Client usage:
+   * const testAiMutation = useMutation(trpc.testAi.mutationOptions({
+   *   onSuccess: (data) => {
+   *     console.log(data.message); // "Job Queued"
+   *   }
+   * }));
+   *
+   * testAiMutation.mutate();
+   * ```
+   */
+  testAi: premiumProcedure.mutation(async () => {
     await inngest.send({
       name: "execute/ai",
     });
@@ -30,17 +64,26 @@ export const appRouter = createTRPCRouter({
   }),
 
   /**
-   * Get Workflows Query
+   * Get User Workflows
    *
    * Retrieves all workflows from the database for the authenticated user.
-   * This is a protected procedure that requires user authentication.
+   * This is a protected procedure that requires user authentication but
+   * does not require a premium subscription.
    *
-   * @returns Promise<Workflow[]> - Array of workflow objects from database
+   * @procedure query
+   * @access protected - Requires authentication only
+   * @returns {Promise<Workflow[]>} Array of workflow objects from database
+   * @throws {TRPCError} UNAUTHORIZED if user not authenticated
    *
    * @example
    * ```typescript
    * // Client usage:
-   * const { data: workflows } = useQuery(trpc.getWorkflows.queryOptions());
+   * const { data: workflows, isLoading } = useQuery(
+   *   trpc.getWorkflows.queryOptions()
+   * );
+   *
+   * if (isLoading) return <Spinner />;
+   * return <WorkflowList workflows={workflows} />;
    * ```
    */
   getWorkflows: protectedProcedure.query(({ ctx }) => {
@@ -48,36 +91,49 @@ export const appRouter = createTRPCRouter({
   }),
 
   /**
-   * Create Workflow Mutation
+   * Create New Workflow
    *
    * Creates a new workflow in the database and triggers a background job
-   * to handle additional processing. This demonstrates how to:
+   * for additional processing. This demonstrates the integration between
+   * synchronous database operations and asynchronous background processing.
    *
-   * - Create database records with Prisma
-   * - Send events to Inngest for background processing
-   * - Combine synchronous and asynchronous operations
+   * Workflow:
+   * 1. Validates user authentication
+   * 2. Sends background event to Inngest for workflow setup processing
+   * 3. Creates workflow record in database
+   * 4. Returns created workflow object
    *
-   * The function sends a "test/hello.world" event to trigger the helloWorld
-   * background function, which could be extended to handle workflow-specific
-   * processing like notifications, integrations, or data processing.
+   * The background job can handle tasks like:
+   * - Workflow template initialization
+   * - Email notifications
+   * - Integration setup
+   * - Audit logging
    *
-   * @returns Promise<Workflow> - The created workflow object
+   * @procedure mutation
+   * @access protected - Requires authentication only
+   * @returns {Promise<Workflow>} The created workflow object
+   * @throws {TRPCError} UNAUTHORIZED if user not authenticated
+   * @throws {Error} If workflow creation or background job fails
    *
    * @example
    * ```typescript
    * // Client usage:
-   * const createMutation = useMutation(trpc.createWorkflow.mutationOptions({
-   *   onSuccess: () => {
-   *     // Refresh workflows list
-   *     queryClient.invalidateQueries(trpc.getWorkflows.queryOptions());
-   *   }
-   * }));
+   * const createWorkflowMutation = useMutation(
+   *   trpc.createWorkflow.mutationOptions({
+   *     onSuccess: (newWorkflow) => {
+   *       // Refresh workflows list
+   *       queryClient.invalidateQueries(trpc.getWorkflows.queryOptions());
+   *       // Navigate to new workflow
+   *       router.push(`/workflows/${newWorkflow.id}`);
+   *     },
+   *     onError: (error) => {
+   *       toast.error(`Failed to create workflow: ${error.message}`);
+   *     }
+   *   })
+   * );
    *
-   * createMutation.mutate();
+   * createWorkflowMutation.mutate();
    * ```
-   *
-   * @throws Will throw an error if workflow creation fails
-   * @throws Will throw an error if Inngest event sending fails
    */
   createWorkflow: protectedProcedure.mutation(async () => {
     // Send event to trigger background processing
@@ -97,12 +153,20 @@ export const appRouter = createTRPCRouter({
 });
 
 /**
- * Export type definition of API
+ * Type Export for Client-Side Type Safety
  *
  * This type export enables full type safety across the client-server boundary.
- * It's used by the TRPC client to provide autocompletion and type checking
- * for all API calls.
+ * The AppRouter type is used by the tRPC client to provide:
+ * - Autocompletion for all available procedures
+ * - Type checking for procedure inputs and outputs
+ * - IntelliSense support in IDEs
+ * - Runtime type validation
  *
- * @see https://trpc.io/docs/client/vanilla/infer-types
+ * Usage:
+ * - Imported in tRPC client setup
+ * - Used for type inference in React Query hooks
+ * - Enables end-to-end type safety from database to UI
+ *
+ * @see {@link https://trpc.io/docs/client/vanilla/infer-types} tRPC Type Inference
  */
 export type AppRouter = typeof appRouter;
