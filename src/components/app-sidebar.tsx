@@ -19,6 +19,46 @@ import { authClient } from "@/lib/auth-client";
 import { SIDEBAR_MENU_ITEMS } from "@/lib/constants";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscription";
 
+/**
+ * Application Sidebar Component
+ *
+ * The main navigation sidebar for the NodeBase application. This component provides:
+ * - Logo and branding in the header
+ * - Dynamic navigation menu based on SIDEBAR_MENU_ITEMS configuration
+ * - Active route highlighting
+ * - Subscription-aware upgrade prompts
+ * - User authentication controls (billing portal, sign out)
+ * - Collapsible design for better UX
+ *
+ * Features:
+ * - Icon-only collapsible mode for space efficiency
+ * - Subscription status integration with upgrade prompts
+ * - Client-side routing with prefetch for better performance
+ * - Tooltip support for collapsed menu items
+ * - Responsive design with proper spacing and typography
+ *
+ * Navigation Structure:
+ * - Header: Logo and app name
+ * - Content: Menu groups (Main, Credentials, Executions)
+ * - Footer: Upgrade prompt, billing portal, sign out
+ *
+ * State Management:
+ * - Uses Next.js router for navigation and active state
+ * - Integrates subscription status for conditional UI
+ * - Handles authentication state changes
+ *
+ * @component
+ * @example
+ * ```tsx
+ * // Used in dashboard layout
+ * <SidebarProvider>
+ *   <AppSidebar />
+ *   <SidebarInset>
+ *     {children}
+ *   </SidebarInset>
+ * </SidebarProvider>
+ * ```
+ */
 export const AppSidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
