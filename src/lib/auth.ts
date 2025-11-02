@@ -9,6 +9,7 @@ import {
   usage,
   webhooks,
 } from "@polar-sh/better-auth";
+import { PRO_SLUG } from "./constants";
 
 /**
  * Better Auth Server Configuration with Polar Integration
@@ -68,7 +69,7 @@ export const auth = betterAuth({
           products: [
             {
               productId: "3c295f0f-8482-4c54-a6a4-3e2ad0260f67",
-              slug: "Nodebase-Pro", // Custom slug for easy reference in Checkout URL, e.g. /checkout/Nodebase-Pro
+              slug: PRO_SLUG,
             },
           ],
           successUrl: process.env.POLAR_SUCCESS_URL,

@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import { SIDEBAR_MENU_ITEMS } from "@/lib/constants";
+import { PRO_SLUG, SIDEBAR_MENU_ITEMS } from "@/lib/constants";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscription";
 
 /**
@@ -118,7 +118,7 @@ export const AppSidebar = () => {
               <SidebarMenuButton
                 tooltip={"Upgrade to Pro"}
                 className="gap-x-4 h-10 px-4"
-                onClick={() => authClient.checkout({ slug: "Nodebase-Pro" })}
+                onClick={() => authClient.checkout({ slug: PRO_SLUG })}
               >
                 <StarIcon className="h-4 w-4" />
                 <span>Upgrade to Pro</span>

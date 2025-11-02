@@ -68,3 +68,5 @@ export const SIDEBAR_MENU_ITEMS = [
     ],
   },
 ];
+
+export const PRO_SLUG = "Nodebase Pro"; // Custom slug for easy reference in Checkout URL, e.g. /checkout/Nodebase-Pro
