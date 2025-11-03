@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { authClient } from "@/lib/auth-client";
-import { PRO_SLUG } from "@/lib/constants";
+import { PRO_SLUG } from "@/config/constants";
 
 interface UpgradeModalProps {
   open: boolean;

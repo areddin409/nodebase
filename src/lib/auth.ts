@@ -9,7 +9,7 @@ import {
   usage,
   webhooks,
 } from "@polar-sh/better-auth";
-import { PRO_SLUG } from "./constants";
+import { PRO_SLUG } from "@/config/constants";
 
 /**
  * Better Auth Server Configuration with Polar Integration

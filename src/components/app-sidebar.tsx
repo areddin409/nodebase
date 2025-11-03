@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import { PRO_SLUG, SIDEBAR_MENU_ITEMS } from "@/lib/constants";
+import { PRO_SLUG, SIDEBAR_MENU_ITEMS } from "@/config/constants";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscription";
 
 /**
