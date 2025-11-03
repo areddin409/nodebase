@@ -4,7 +4,7 @@
     <h1 style="margin: 0; font-size: 3em;">NodeBase</h1>
   </div>
   
-  **A modern, full-stack Next.js application with authentication, database integration, and beautiful UI components**
+  **A modern workflow automation platform with visual editor, built on Next.js 15 with tRPC, Better Auth, Prisma, and event-driven architecture**
 
   <br/>
 
@@ -19,13 +19,17 @@
 ## ✨ Features
 
 - 🔐 **Authentication** - Secure user authentication with [Better Auth](https://better-auth.com/)
+- 💎 **Premium Subscriptions** - Integrated billing and subscription management with [Polar.sh](https://polar.sh/)
 - 🎨 **Modern UI** - Beautiful components built with [shadcn/ui](https://ui.shadcn.com/) and [Radix UI](https://radix-ui.com/)
 - 🗄️ **Database** - PostgreSQL integration with [Prisma ORM](https://prisma.io/)
 - 🔄 **Type-Safe APIs** - End-to-end type safety with [tRPC](https://trpc.io/)
+- ⚡ **Background Jobs** - Event-driven processing with [Inngest](https://inngest.com/)
+- 🤖 **AI Integration** - Multiple AI providers (Google, OpenAI, Anthropic) with telemetry
+- 🎯 **Visual Editor** - React Flow-based workflow editor with custom node types
 - 🎯 **Form Management** - Robust forms with [React Hook Form](https://react-hook-form.com/) and [Zod](https://zod.dev/)
 - 🌙 **Dark Mode** - Theme switching with [next-themes](https://github.com/pacocoursey/next-themes)
 - 📱 **Responsive Design** - Mobile-first design with [Tailwind CSS](https://tailwindcss.com/)
-- 🔧 **Developer Experience** - Hot reload, TypeScript, ESLint, and Prettier
+- 🔧 **Developer Experience** - Hot reload, TypeScript, and Biome for code quality
 
 ## 🛠️ Tech Stack
 
@@ -35,6 +39,7 @@
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui + Radix UI
+- **Visual Editor**: React Flow for workflow automation
 - **Forms**: React Hook Form + Zod validation
 - **State Management**: TanStack Query
 - **Icons**: Lucide React
@@ -43,7 +48,10 @@
 
 - **API**: tRPC for type-safe APIs
 - **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: Better Auth
+- **Authentication**: Better Auth with Polar.sh subscriptions
+- **Background Jobs**: Inngest for event-driven processing
+- **AI Integration**: Google Gemini, OpenAI, Anthropic Claude
+- **Monitoring**: Sentry with Vercel AI SDK telemetry
 - **Validation**: Zod schemas
 
 ### Development Tools
@@ -129,29 +137,50 @@ nodebase/
 ├── src/
 │   ├── app/               # Next.js App Router pages
 │   │   ├── (auth)/        # Authentication routes
-│   │   ├── api/           # API routes
+│   │   ├── (dashboard)/   # Protected dashboard routes
+│   │   │   ├── (editor)/  # Visual editor routes
+│   │   │   └── (rest)/    # Other dashboard pages
+│   │   ├── api/           # API routes (auth, tRPC, Inngest)
 │   │   └── globals.css    # Global styles
 │   ├── components/        # Reusable UI components
 │   │   └── ui/           # shadcn/ui components
-│   ├── features/         # Feature-specific components
-│   │   └── auth/         # Authentication components
+│   ├── config/           # Configuration files
+│   │   ├── constants.ts  # App constants
+│   │   └── node-components.ts # React Flow node registry
+│   ├── features/         # Feature-based organization
+│   │   ├── auth/         # Authentication features
+│   │   ├── editor/       # Visual workflow editor
+│   │   ├── executions/   # Workflow execution engine
+│   │   ├── subscriptions/# Premium subscription management
+│   │   ├── triggers/     # Workflow triggers
+│   │   └── workflows/    # Workflow CRUD operations
+│   ├── generated/        # Auto-generated files
+│   │   └── prisma/       # Prisma client
 │   ├── hooks/            # Custom React hooks
+│   ├── inngest/          # Background job functions
+│   │   ├── client.ts     # Inngest client setup
+│   │   └── functions.ts  # Background job definitions
 │   ├── lib/              # Utility functions and configurations
 │   │   ├── auth.ts       # Better Auth configuration
+│   │   ├── auth-client.ts# Client-side auth utilities
+│   │   ├── auth-utils.ts # Auth guards and helpers
 │   │   ├── db.ts         # Prisma client
-│   │   └── utils.ts      # Utility functions
+│   │   ├── polar.ts      # Polar.sh subscription client
+│   │   └── utils.ts      # General utilities
 │   └── trpc/             # tRPC configuration and routers
 ├── public/               # Static assets
 ├── biome.json           # Biome configuration
 ├── components.json      # shadcn/ui configuration
+├── mprocs.yaml          # Multi-process development setup
 ├── next.config.ts       # Next.js configuration
-├── tailwind.config.js   # Tailwind CSS configuration
 └── tsconfig.json        # TypeScript configuration
 ```
 
 ## 📝 Available Scripts
 
-- `npm run dev` - Start development server with Turbopack
+- `npm run dev:all` - Start development server with Next.js + Inngest (recommended)
+- `npm run dev` - Start Next.js development server with Turbopack only
+- `npm run inngest:dev` - Start Inngest development server only
 - `npm run build` - Build for production with Turbopack
 - `npm run start` - Start production server
 - `npm run lint` - Run Biome linting
@@ -163,9 +192,21 @@ nodebase/
 
 The project uses Prisma with PostgreSQL. Update your `DATABASE_URL` in `.env.local` to connect to your database.
 
-### Authentication
+### Authentication & Subscriptions
 
-Better Auth is configured in `src/lib/auth.ts` with email/password authentication. You can extend it with additional providers.
+Better Auth is configured in `src/lib/auth.ts` with email/password authentication and Polar.sh integration for premium subscriptions. You can extend it with additional providers.
+
+### Background Jobs
+
+Inngest handles event-driven background processing. Visit `/api/inngest` during development to access the Inngest dev UI.
+
+### AI Integration
+
+Multiple AI providers are configured with telemetry via Sentry. Add your API keys to `.env.local`:
+
+- `GOOGLE_GENERATIVE_AI_API_KEY` for Google Gemini
+- `OPENAI_API_KEY` for OpenAI models
+- `ANTHROPIC_API_KEY` for Anthropic Claude
 
 ### UI Components
 
@@ -207,29 +248,35 @@ Update this when adding new features to help maintain accurate documentation.
 ### ✅ Currently Documented Features:
 
 - [x] Better Auth authentication (email/password)
+- [x] Polar.sh premium subscription integration
 - [x] Prisma + PostgreSQL database integration
-- [x] tRPC for type-safe APIs
+- [x] tRPC for type-safe APIs with protected/premium procedures
 - [x] shadcn/ui components setup
-- [x] Next.js 15 with App Router
+- [x] Next.js 15 with App Router and route groups
 - [x] TypeScript configuration
 - [x] Tailwind CSS v4 styling
 - [x] React Hook Form + Zod validation
 - [x] Dark mode with next-themes
 - [x] Biome for linting and formatting
-- [x] Basic project structure
+- [x] Feature-based project structure
 - [x] Authentication forms (login/register)
 - [x] Environment setup guide
+- [x] React Flow visual editor integration
+- [x] Inngest background job processing
+- [x] Multi-AI provider integration (Google, OpenAI, Anthropic)
+- [x] Sentry monitoring with AI telemetry
+- [x] Multi-process development setup (mprocs)
 
 ### 🔄 Features in Codebase (Need Documentation Updates):
 
-- [ ] Social auth providers (GitHub/Google buttons exist in register form)
-- [ ] Specific tRPC routers and procedures
-- [ ] Database models and relationships
-- [ ] Custom hooks (use-mobile.ts)
-- [ ] Specific UI components available
-- [ ] Session management configuration
-- [ ] Cookie security settings
-- [ ] API endpoints structure
+- [ ] Specific workflow node types and their configurations
+- [ ] Workflow execution engine details
+- [ ] Trigger system implementation
+- [ ] Database schema relationships and models
+- [ ] Custom hooks documentation (use-mobile.ts, etc.)
+- [ ] Specific tRPC procedures and their usage
+- [ ] Auth guard implementation details
+- [ ] Premium subscription flow and gating logic
 
 ### 📝 Future Documentation TODOs:
 
@@ -243,7 +290,7 @@ Update this when adding new features to help maintain accurate documentation.
 - [ ] Component documentation
 - [ ] Database schema visualization
 
-### 🏷️ Last Updated: October 21, 2025
+### 🏷️ Last Updated: November 3, 2025
 
 ---
 
