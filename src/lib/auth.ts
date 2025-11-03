@@ -9,6 +9,7 @@ import {
   usage,
   webhooks,
 } from "@polar-sh/better-auth";
+import { PRO_SLUG } from "./constants";
 
 /**
  * Better Auth Server Configuration with Polar Integration
@@ -43,6 +44,17 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID as string,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    },
+  },
 
   emailAndPassword: {
     enabled: true,
@@ -57,7 +69,7 @@ export const auth = betterAuth({
           products: [
             {
               productId: "3c295f0f-8482-4c54-a6a4-3e2ad0260f67",
-              slug: "Nodebase-Pro", // Custom slug for easy reference in Checkout URL, e.g. /checkout/Nodebase-Pro
+              slug: PRO_SLUG,
             },
           ],
           successUrl: process.env.POLAR_SUCCESS_URL,

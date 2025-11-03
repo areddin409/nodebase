@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -24,6 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 
@@ -34,8 +36,11 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+type LoadingState = "idle" | "email" | "github" | "google";
+
 export function LoginForm() {
   const router = useRouter();
+  const [loadingState, setLoadingState] = useState<LoadingState>("idle");
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -45,6 +50,7 @@ export function LoginForm() {
   });
 
   const onSubmit = async (values: LoginFormValues) => {
+    setLoadingState("email");
     await authClient.signIn.email(
       {
         email: values.email,
@@ -61,9 +67,40 @@ export function LoginForm() {
         },
       }
     );
+    setLoadingState("idle");
   };
 
-  const isPending = form.formState.isSubmitting;
+  const handleGithubLogin = async () => {
+    setLoadingState("github");
+    try {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: "/",
+      });
+    } catch (error) {
+      toast.error("GitHub login failed. Please try again.");
+      console.error("GitHub login error:", error);
+    } finally {
+      setLoadingState("idle");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoadingState("google");
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+    } catch (error) {
+      toast.error("Google login failed. Please try again.");
+      console.error("Google login error:", error);
+    } finally {
+      setLoadingState("idle");
+    }
+  };
+
+  const isLoading = loadingState !== "idle";
 
   return (
     <div className="flex flex-col gap-6">
@@ -81,29 +118,49 @@ export function LoginForm() {
                     variant={"outline"}
                     className="w-full"
                     type="button"
-                    disabled={isPending}
+                    disabled={isLoading}
+                    onClick={handleGithubLogin}
                   >
-                    <Image
-                      src="/logos/github.svg"
-                      alt="Github"
-                      width={20}
-                      height={20}
-                    />
-                    Continue with Github
+                    {loadingState === "github" ? (
+                      <>
+                        <Spinner className="size-4" />
+                        Signing in with GitHub...
+                      </>
+                    ) : (
+                      <>
+                        <Image
+                          src="/logos/github.svg"
+                          alt="Github"
+                          width={20}
+                          height={20}
+                        />
+                        Continue with Github
+                      </>
+                    )}
                   </Button>
                   <Button
                     variant={"outline"}
                     className="w-full"
                     type="button"
-                    disabled={isPending}
+                    disabled={isLoading}
+                    onClick={handleGoogleLogin}
                   >
-                    <Image
-                      src="/logos/google.svg"
-                      alt="Google"
-                      width={20}
-                      height={20}
-                    />
-                    Continue with Google
+                    {loadingState === "google" ? (
+                      <>
+                        <Spinner className="size-4" />
+                        Signing in with Google...
+                      </>
+                    ) : (
+                      <>
+                        <Image
+                          src="/logos/google.svg"
+                          alt="Google"
+                          width={20}
+                          height={20}
+                        />
+                        Continue with Google
+                      </>
+                    )}
                   </Button>
                 </div>
                 <div className="grid gap-6">
@@ -141,8 +198,15 @@ export function LoginForm() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isPending}>
-                    Login
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {loadingState === "email" ? (
+                      <>
+                        <Spinner className="size-4" />
+                        Logging in...
+                      </>
+                    ) : (
+                      "Login"
+                    )}
                   </Button>
                 </div>
                 <div className="text-center text-sm">
