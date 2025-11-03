@@ -87,7 +87,7 @@ export const useUpdateWorkflowName = () => {
           trpc.workflows.getMany.queryOptions({})
         );
 
-        // Snapshot the previous value
+        // Get the previous data for rollback
         const previousWorkflow = queryClient.getQueryData(
           trpc.workflows.getOne.queryOptions({ id }).queryKey
         );
@@ -96,25 +96,24 @@ export const useUpdateWorkflowName = () => {
         );
 
         // Optimistically update the single workflow
-        if (previousWorkflow) {
-          queryClient.setQueryData(
-            trpc.workflows.getOne.queryOptions({ id }).queryKey,
-            { ...previousWorkflow, name }
-          );
-        }
+        queryClient.setQueryData(
+          trpc.workflows.getOne.queryOptions({ id }).queryKey,
+          (old: any) => (old ? { ...old, name } : old)
+        );
 
         // Optimistically update the workflows list
-        if (previousWorkflows) {
-          queryClient.setQueryData(
-            trpc.workflows.getMany.queryOptions({}).queryKey,
-            {
-              ...previousWorkflows,
-              items: previousWorkflows.items.map(w =>
+        queryClient.setQueryData(
+          trpc.workflows.getMany.queryOptions({}).queryKey,
+          (old: any) => {
+            if (!old?.items) return old;
+            return {
+              ...old,
+              items: old.items.map((w: any) =>
                 w.id === id ? { ...w, name } : w
               ),
-            }
-          );
-        }
+            };
+          }
+        );
 
         // Return a context object with the snapshotted value
         return { previousWorkflow, previousWorkflows };

@@ -1,5 +1,6 @@
 import { generateSlug } from "random-word-slugs";
 import prisma from "@/lib/db";
+import type { Node, Edge } from "@xyflow/react";
 import {
   createTRPCRouter,
   premiumProcedure,
@@ -7,16 +8,17 @@ import {
 } from "@/trpc/init";
 import { z } from "zod";
 import { PAGINATION } from "@/config/constants";
+import { NodeType } from "@/generated/prisma";
 /**
  * Workflows Router
  *
  * This router manages CRUD operations for workflows associated with authenticated users.
  * Key Features:
- * - Create Workflow: Generates a new workflow with a random name for the authenticated user.
+ * - Create Workflow: Generates a new workflow with a random name and creates one initial node for the authenticated user (requires premium subscription).
  * - Delete Workflow: Removes a workflow by ID, ensuring it belongs to the authenticated user.
  * - Update Workflow Name: Allows renaming of a workflow, with validation to ensure the name is not empty.
- * - Get Single Workflow: Retrieves a specific workflow by ID for the authenticated user.
- * - Get Multiple Workflows: Lists all workflows associated with the authenticated user.
+ * - Get Single Workflow: Retrieves a specific workflow by ID with nodes and connections, transforming them to React Flow compatible format.
+ * - Get Multiple Workflows: Lists workflows with pagination and search filtering for the authenticated user.
  */
 export const workflowsRouter = createTRPCRouter({
   create: premiumProcedure.mutation(({ ctx }) => {
@@ -24,6 +26,13 @@ export const workflowsRouter = createTRPCRouter({
       data: {
         name: generateSlug(3),
         userId: ctx.auth.user.id,
+        nodes: {
+          create: {
+            type: NodeType.INITIAL,
+            position: { x: 0, y: 0 },
+            name: NodeType.INITIAL,
+          },
+        },
       },
     });
   }),
@@ -53,9 +62,34 @@ export const workflowsRouter = createTRPCRouter({
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      return prisma.workflow.findUniqueOrThrow({
+      const workflow = await prisma.workflow.findUniqueOrThrow({
         where: { id: input.id, userId: ctx.auth.user.id },
+        include: { nodes: true, connections: true },
       });
+
+      //transforming server nodes to react-flow compatible nodes
+      const nodes: Node[] = workflow.nodes.map(node => ({
+        id: node.id,
+        type: node.type,
+        position: node.position as { x: number; y: number },
+        data: (node.data as Record<string, unknown>) || {},
+      }));
+
+      //transform server connections to react-flow compatible edges
+      const edges: Edge[] = workflow.connections.map(connection => ({
+        id: connection.id,
+        source: connection.fromNodeId,
+        target: connection.toNodeId,
+        sourceHandle: connection.fromOutput,
+        targetHandle: connection.toInput,
+      }));
+
+      return {
+        id: workflow.id,
+        name: workflow.name,
+        nodes,
+        edges,
+      };
     }),
   getMany: protectedProcedure
     .input(
