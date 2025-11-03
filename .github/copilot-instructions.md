@@ -1,6 +1,6 @@
 # NodeBase AI Coding Instructions
 
-This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven architecture via Inngest.
+This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven architecture via Inngest. It's a workflow automation platform with a React Flow-based visual editor.
 
 ## Architecture Overview
 
@@ -8,11 +8,19 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 - **Backend**: tRPC for type-safe APIs with protected procedures
 - **Database**: PostgreSQL with Prisma ORM (client generated to `src/generated/prisma/`)
 - **Authentication**: Better Auth with email/password, configured in `src/lib/auth.ts`
+- **Subscriptions**: Polar.sh integration for premium features with `premiumProcedure`
 - **Background Jobs**: Inngest for event-driven processing with AI model integrations
+- **Visual Editor**: React Flow for workflow node editing with custom node types
 - **Code Quality**: Biome for linting/formatting (no ESLint/Prettier)
 - **Monitoring**: Sentry integrated with Vercel AI SDK telemetry
 
 ## Key Patterns & Conventions
+
+### Feature-Based Organization
+
+- **Features**: Organized in `src/features/` with subfolders: `auth/`, `editor/`, `subscriptions/`, `workflows/`
+- **Feature Structure**: Each feature contains `components/`, `hooks/`, `server/` (for tRPC routers), and other domain-specific modules
+- **Cross-Feature**: Shared components in `src/components/`, utilities in `src/lib/`, configuration in `src/config/`
 
 ### Route Structure & Auth Guards
 
@@ -28,12 +36,21 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 - Auth client (`src/lib/auth-client.ts`) handles sign in/out with toast notifications
 - Session management through Better Auth headers integration in tRPC middleware
 
-### API Layer (tRPC)
+### API Layer (tRPC) & Subscriptions
 
 - **Main Router**: `src/trpc/routers/_app.ts` exports `AppRouter` type for client
 - **Protected Procedures**: Use `protectedProcedure` - auto-injects session context or throws UNAUTHORIZED
+- **Premium Procedures**: Use `premiumProcedure` - requires active Polar.sh subscription (extends `protectedProcedure`)
+- **Feature Routers**: Each feature exports its own router (e.g., `workflowsRouter`) imported into main router
 - **Inngest Integration**: API procedures trigger background jobs via `inngest.send({ name: "event/name" })`
 - **Error Handling**: tRPC errors automatically handled by client with toast notifications
+
+### React Flow Editor Architecture
+
+- **Node Components**: Registered in `src/config/node-components.ts` with type-safe mapping to Prisma `NodeType` enum
+- **Data Transform**: Server nodes/connections → React Flow format in tRPC procedures (see `workflowsRouter.getOne`)
+- **Node Registration**: Add new node types to both Prisma schema and `nodeComponents` mapping
+- **Editor State**: Local React state manages nodes/edges with `applyNodeChanges`/`applyEdgeChanges` hooks
 
 ### UI Components & Forms
 
@@ -47,6 +64,7 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 - **Inngest Client**: App ID "my-app" in `src/inngest/client.ts`
 - **AI Functions**: Multiple providers (Google, OpenAI, Anthropic) with `step.ai.wrap()` for telemetry
 - **Function Registration**: Add functions to `/api/inngest/route.ts` serve array
+- **AI Telemetry**: Vercel AI SDK + Sentry integration for observability
 - **Development**: Visit `/api/inngest` for Inngest dev UI
 
 ## Development Workflow
@@ -66,21 +84,25 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 
 ### Adding Features
 
-1. **New Pages**: Use appropriate route group, add auth guard, follow layout patterns
-2. **API Endpoints**: Add `protectedProcedure` to `_app.ts`, integrate Inngest events if needed
-3. **UI Components**: Use `npx shadcn@latest add [component]`
-4. **Background Jobs**: Create function in `src/inngest/functions.ts`, register in route handler
+1. **New Features**: Create folder in `src/features/` with components, hooks, server routers
+2. **New Pages**: Use appropriate route group, add auth guard, follow layout patterns
+3. **API Endpoints**: Add router to feature's `server/` folder, import into `_app.ts`
+4. **Node Types**: Add to Prisma schema + `nodeComponents` mapping + create component
+5. **UI Components**: Use `npx shadcn@latest add [component]`
+6. **Background Jobs**: Create function in `src/inngest/functions.ts`, register in route handler
 
 ## Integration Points
 
 - **Sentry**: Configured in `next.config.ts`, server/edge configs with Vercel AI integration
-- **Type Safety**: Full stack via Prisma → tRPC → TanStack Query
+- **Type Safety**: Full stack via Prisma → tRPC → TanStack Query → React Flow
 - **Session Flow**: Better Auth → tRPC middleware → protected procedures → client auth state
-- **AI Telemetry**: Vercel AI SDK + Sentry + Inngest `step.ai.wrap()` pattern
+- **Subscription Flow**: Polar.sh → `premiumProcedure` → feature gating
+- **Editor Flow**: Prisma nodes/connections → transform → React Flow → local state management
 
 ## Current State
 
-- Minimal tRPC router (workflow CRUD + AI test endpoint)
-- Basic Better Auth (email/password, social UI exists but not configured)
+- Feature-based architecture with workflows, editor, auth, subscriptions
+- React Flow editor with type-safe node registration system
+- Premium subscription gating via Polar.sh integration
+- Working Inngest integration with multi-provider AI functions and telemetry
 - Dashboard shell with sidebar navigation (workflows, credentials, executions)
-- Working Inngest integration with multi-provider AI functions

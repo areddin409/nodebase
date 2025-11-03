@@ -78,15 +78,75 @@ export const useUpdateWorkflowName = () => {
 
   return useMutation(
     trpc.workflows.updateName.mutationOptions({
+      onMutate: async ({ id, name }) => {
+        // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+        await queryClient.cancelQueries(
+          trpc.workflows.getOne.queryOptions({ id })
+        );
+        await queryClient.cancelQueries(
+          trpc.workflows.getMany.queryOptions({})
+        );
+
+        // Get the previous data for rollback
+        const previousWorkflow = queryClient.getQueryData(
+          trpc.workflows.getOne.queryOptions({ id }).queryKey
+        );
+        const previousWorkflows = queryClient.getQueryData(
+          trpc.workflows.getMany.queryOptions({}).queryKey
+        );
+
+        // Optimistically update the single workflow
+        queryClient.setQueryData(
+          trpc.workflows.getOne.queryOptions({ id }).queryKey,
+          (old: any) => (old ? { ...old, name } : old)
+        );
+
+        // Optimistically update the workflows list
+        queryClient.setQueryData(
+          trpc.workflows.getMany.queryOptions({}).queryKey,
+          (old: any) => {
+            if (!old?.items) return old;
+            return {
+              ...old,
+              items: old.items.map((w: any) =>
+                w.id === id ? { ...w, name } : w
+              ),
+            };
+          }
+        );
+
+        // Return a context object with the snapshotted value
+        return { previousWorkflow, previousWorkflows };
+      },
+      onError: (error, variables, context) => {
+        // If the mutation fails, use the context returned from onMutate to roll back
+        if (context?.previousWorkflow) {
+          queryClient.setQueryData(
+            trpc.workflows.getOne.queryOptions({ id: variables.id }).queryKey,
+            context.previousWorkflow
+          );
+        }
+        if (context?.previousWorkflows) {
+          queryClient.setQueryData(
+            trpc.workflows.getMany.queryOptions({}).queryKey,
+            context.previousWorkflows
+          );
+        }
+        toast.error(`Failed to update workflow: ${error.message}`);
+      },
       onSuccess: data => {
         toast.success(`Workflow "${data.name}" updated`);
-        queryClient.invalidateQueries(trpc.workflows.getMany.queryOptions({}));
-        queryClient.invalidateQueries(
-          trpc.workflows.getOne.queryOptions({ id: data.id })
-        );
       },
-      onError: error => {
-        toast.error(`Failed to update workflow: ${error.message}`);
+      onSettled: data => {
+        // Always refetch after error or success to ensure we have the latest data
+        if (data) {
+          queryClient.invalidateQueries(
+            trpc.workflows.getMany.queryOptions({})
+          );
+          queryClient.invalidateQueries(
+            trpc.workflows.getOne.queryOptions({ id: data.id })
+          );
+        }
       },
     })
   );
