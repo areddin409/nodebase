@@ -3,10 +3,11 @@
 import { type NodeProps, Position, useReactFlow } from "@xyflow/react";
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
-import { memo, type ReactNode } from "react";
+import { memo, type ReactNode, useState } from "react";
 import { BaseNode, BaseNodeContent } from "@/components/react-flow/base-node";
 import { BaseHandle } from "@/components/react-flow/base-handle";
 import { WorkflowNode } from "@/components/workflow-node";
+import ConfirmDelete from "@/components/confirm-delete";
 
 interface BaseExecutionNodeProps extends NodeProps {
   icon: LucideIcon | string;
@@ -29,7 +30,13 @@ export const BaseExecutionNode = memo(
     onDoubleClick,
   }: BaseExecutionNodeProps) => {
     const { setNodes, setEdges } = useReactFlow();
-    const handleDelete = () => {
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+    /**
+     * Handles the actual deletion of the node and its connections
+     * after user confirmation in the alert dialog.
+     */
+    const handleConfirmedDelete = () => {
       setNodes(currentNodes => {
         const updatedNodes = currentNodes.filter(node => node.id !== id);
         return updatedNodes;
@@ -41,28 +48,58 @@ export const BaseExecutionNode = memo(
         );
         return updatedEdges;
       });
+
+      setShowDeleteDialog(false);
+    };
+
+    /**
+     * Initiates the delete process by showing the confirmation dialog
+     */
+    const handleDelete = () => {
+      setShowDeleteDialog(true);
     };
     return (
-      <WorkflowNode
-        name={name}
-        description={description}
-        onDelete={handleDelete}
-        onSettings={onSettings}
-      >
-        {/* TODO: Wrap within NodeStatusIndicator */}
-        <BaseNode onDoubleClick={onDoubleClick}>
-          <BaseNodeContent>
-            {typeof Icon === "string" ? (
-              <Image src={Icon} alt={`${name}`} width={16} height={16} />
-            ) : (
-              <Icon className="size-4 text-muted-foreground" />
-            )}
-            {children}
-            <BaseHandle id="target-1" type="target" position={Position.Left} />
-            <BaseHandle id="source-1" type="source" position={Position.Right} />
-          </BaseNodeContent>
-        </BaseNode>
-      </WorkflowNode>
+      <>
+        <WorkflowNode
+          name={name}
+          description={description}
+          onDelete={handleDelete}
+          onSettings={onSettings}
+        >
+          {/* TODO: Wrap within NodeStatusIndicator */}
+          <BaseNode onDoubleClick={onDoubleClick}>
+            <BaseNodeContent>
+              {typeof Icon === "string" ? (
+                <Image src={Icon} alt={`${name}`} width={16} height={16} />
+              ) : (
+                <Icon className="size-4 text-muted-foreground" />
+              )}
+              {children}
+              <BaseHandle
+                id="target-1"
+                type="target"
+                position={Position.Left}
+              />
+              <BaseHandle
+                id="source-1"
+                type="source"
+                position={Position.Right}
+              />
+            </BaseNodeContent>
+          </BaseNode>
+        </WorkflowNode>
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDelete
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          itemName={name}
+          itemType="node"
+          description="This action cannot be undone and will also remove all connections to this node."
+          onConfirm={handleConfirmedDelete}
+          onCancel={() => setShowDeleteDialog(false)}
+        />
+      </>
     );
   }
 );

@@ -6,6 +6,7 @@ import { Provider } from "jotai";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,12 +33,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TRPCReactProvider>
-          <NuqsAdapter>
-            <Provider>{children}</Provider>
-          </NuqsAdapter>
-          <Toaster richColors />
-        </TRPCReactProvider>
+        <ThemeProvider>
+          <TRPCReactProvider>
+            <NuqsAdapter>
+              <Provider>{children}</Provider>
+            </NuqsAdapter>
+            <Toaster richColors />
+          </TRPCReactProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

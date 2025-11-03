@@ -18,6 +18,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { PRO_SLUG, SIDEBAR_MENU_ITEMS } from "@/config/constants";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscription";
+import { ModeToggle } from "./dark-mode-toggle";
 
 /**
  * Application Sidebar Component
@@ -69,17 +70,20 @@ export const AppSidebar = () => {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
-            <Link href="/" prefetch>
-              <Image
-                src="/logos/logo.svg"
-                alt="Nodebase"
-                width={30}
-                height={30}
-              />
-              <span className="font-semibold text-sm">Nodebase</span>
-            </Link>
-          </SidebarMenuButton>
+          <div className="flex items-center gap-x-3">
+            <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
+              <Link href="/" prefetch>
+                <Image
+                  src="/logos/logo.svg"
+                  alt="Nodebase"
+                  width={30}
+                  height={30}
+                />
+                <span className="font-semibold text-sm">Nodebase</span>
+              </Link>
+            </SidebarMenuButton>
+            {/* <ModeToggle /> */}
+          </div>
         </SidebarMenuItem>
       </SidebarHeader>
       <SidebarContent>
