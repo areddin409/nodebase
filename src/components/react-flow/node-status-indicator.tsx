@@ -11,6 +11,7 @@ export type NodeStatusIndicatorProps = {
   status?: NodeStatus;
   variant?: NodeStatusVariant;
   children: ReactNode;
+  className?: string;
 };
 
 export const SpinnerLoadingIndicator = ({
@@ -34,8 +35,10 @@ export const SpinnerLoadingIndicator = ({
 
 export const BorderLoadingIndicator = ({
   children,
+  className,
 }: {
   children: ReactNode;
+  className?: string;
 }) => {
   return (
     <>
@@ -57,7 +60,12 @@ export const BorderLoadingIndicator = ({
         }
       `}
         </style>
-        <div className="absolute inset-0 overflow-hidden rounded-[7px]">
+        <div
+          className={cn(
+            "absolute inset-0 overflow-hidden rounded-[7px]",
+            className
+          )}
+        >
           <div className="spinner rounded-full bg-[conic-gradient(from_0deg_at_50%_50%,_rgb(42,67,233)_0deg,_rgba(42,138,246,0)_360deg)]" />
         </div>
       </div>
@@ -78,7 +86,7 @@ const StatusBorder = ({
       <div
         className={cn(
           "absolute -left-[1px] -top-[1px] h-[calc(100%+2px)] w-[calc(100%+2px)] rounded-[7px] border-2",
-          className,
+          className
         )}
       />
       {children}
@@ -90,6 +98,7 @@ export const NodeStatusIndicator = ({
   status,
   variant = "border",
   children,
+  className,
 }: NodeStatusIndicatorProps) => {
   switch (status) {
     case "loading":
@@ -97,16 +106,26 @@ export const NodeStatusIndicator = ({
         case "overlay":
           return <SpinnerLoadingIndicator>{children}</SpinnerLoadingIndicator>;
         case "border":
-          return <BorderLoadingIndicator>{children}</BorderLoadingIndicator>;
+          return (
+            <BorderLoadingIndicator className={className}>
+              {children}
+            </BorderLoadingIndicator>
+          );
         default:
           return <>{children}</>;
       }
     case "success":
       return (
-        <StatusBorder className="border-emerald-600">{children}</StatusBorder>
+        <StatusBorder className={cn("border-emerald-600", className)}>
+          {children}
+        </StatusBorder>
       );
     case "error":
-      return <StatusBorder className="border-red-400">{children}</StatusBorder>;
+      return (
+        <StatusBorder className={cn("border-red-400", className)}>
+          {children}
+        </StatusBorder>
+      );
     default:
       return <>{children}</>;
   }

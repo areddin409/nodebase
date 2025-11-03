@@ -61,9 +61,9 @@ export const BaseTriggerNode = memo(
           onSettings={onSettings}
         >
           <NodeStatusIndicator
-            status="initial"
+            status="success"
             variant="border"
-            // className="rounded-l-2xl"
+            className="rounded-l-2xl"
           >
             <BaseNode
               onDoubleClick={onDoubleClick}
