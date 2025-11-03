@@ -20,6 +20,7 @@ export const trpc = createTRPCOptionsProxy({
 });
 // Helper to use the router directly (server-only)
 export const caller = appRouter.createCaller(createTRPCContext);
+
 // Helper to prefetch queries (server-only)
 export function prefetch<T extends ReturnType<TRPCQueryOptions<any>>>(
   queryOptions: T

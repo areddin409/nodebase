@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Loader } from "@/components/loader";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 
@@ -122,10 +122,12 @@ export function LoginForm() {
                     onClick={handleGithubLogin}
                   >
                     {loadingState === "github" ? (
-                      <>
-                        <Spinner className="size-4" />
-                        Signing in with GitHub...
-                      </>
+                      <Loader
+                        variant="inline"
+                        spinnerSize="sm"
+                        size="sm"
+                        text="Signing in with GitHub..."
+                      />
                     ) : (
                       <>
                         <Image
@@ -146,10 +148,12 @@ export function LoginForm() {
                     onClick={handleGoogleLogin}
                   >
                     {loadingState === "google" ? (
-                      <>
-                        <Spinner className="size-4" />
-                        Signing in with Google...
-                      </>
+                      <Loader
+                        variant="inline"
+                        spinnerSize="sm"
+                        size="sm"
+                        text="Signing in with Google..."
+                      />
                     ) : (
                       <>
                         <Image
@@ -200,10 +204,12 @@ export function LoginForm() {
                   />
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {loadingState === "email" ? (
-                      <>
-                        <Spinner className="size-4" />
-                        Logging in...
-                      </>
+                      <Loader
+                        variant="inline"
+                        spinnerSize="sm"
+                        size="sm"
+                        text="Logging in..."
+                      />
                     ) : (
                       "Login"
                     )}

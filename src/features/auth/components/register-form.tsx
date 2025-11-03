@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { Loader } from "@/components/loader";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 
@@ -129,10 +129,12 @@ export function RegisterForm() {
                     onClick={handleGithubLogin}
                   >
                     {loadingState === "github" ? (
-                      <>
-                        <Spinner className="size-4" />
-                        Signing in with GitHub...
-                      </>
+                      <Loader
+                        variant="inline"
+                        spinnerSize="sm"
+                        size="sm"
+                        text="Signing in with GitHub..."
+                      />
                     ) : (
                       <>
                         <Image
@@ -153,10 +155,12 @@ export function RegisterForm() {
                     onClick={handleGoogleLogin}
                   >
                     {loadingState === "google" ? (
-                      <>
-                        <Spinner className="size-4" />
-                        Signing in with Google...
-                      </>
+                      <Loader
+                        variant="inline"
+                        spinnerSize="sm"
+                        size="sm"
+                        text="Signing in with Google..."
+                      />
                     ) : (
                       <>
                         <Image
@@ -225,10 +229,12 @@ export function RegisterForm() {
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {loadingState === "email" ? (
-                      <>
-                        <Spinner className="size-4" />
-                        Creating account...
-                      </>
+                      <Loader
+                        variant="inline"
+                        spinnerSize="sm"
+                        size="sm"
+                        text="Creating account..."
+                      />
                     ) : (
                       "Sign up"
                     )}
