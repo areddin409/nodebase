@@ -5,7 +5,7 @@ import {
   useCreateWorkflow,
   useSuspenseWorkflows,
 } from "../hooks/use-workflows";
-import { useUpgradeModel } from "@/hooks/use-upgrade-model";
+import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
 import { useRouter } from "next/navigation";
 
 export const WorkflowsList = () => {
@@ -21,7 +21,7 @@ export const WorkflowsHeader = ({ disabled }: { disabled?: boolean }) => {
   const router = useRouter();
 
   const createWorkflow = useCreateWorkflow();
-  const { handleError, modal } = useUpgradeModel();
+  const { handleError, modal } = useUpgradeModal();
 
   const handleCreate = () => {
     createWorkflow.mutate(undefined, {
