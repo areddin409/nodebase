@@ -1,6 +1,6 @@
 # NodeBase AI Coding Instructions
 
-This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven architecture via Inngest.
+This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven architecture via Inngest. It's a workflow automation platform with a React Flow-based visual editor.
 
 ## Architecture Overview
 
@@ -8,7 +8,9 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 - **Backend**: tRPC for type-safe APIs with protected procedures
 - **Database**: PostgreSQL with Prisma ORM (client generated to `src/generated/prisma/`)
 - **Authentication**: Better Auth with email/password, configured in `src/lib/auth.ts`
+- **Subscriptions**: Polar.sh integration for premium features with `premiumProcedure`
 - **Background Jobs**: Inngest for event-driven processing with AI model integrations
+- **Visual Editor**: React Flow for workflow node editing with custom node types
 - **Code Quality**: Biome for linting/formatting (no ESLint/Prettier)
 - **Monitoring**: Sentry integrated with Vercel AI SDK telemetry
 
