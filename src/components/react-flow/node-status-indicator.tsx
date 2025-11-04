@@ -42,7 +42,7 @@ export const BorderLoadingIndicator = ({
 }) => {
   return (
     <>
-      <div className="absolute -left-[1px] -top-[1px] h-[calc(100%+2px)] w-[calc(100%+2px)]">
+      <div className="absolute -left-[2px] -top-[2px] h-[calc(100%+4px)] w-[calc(100%+4px)]">
         <style>
           {`
         @keyframes spin {
@@ -62,11 +62,11 @@ export const BorderLoadingIndicator = ({
         </style>
         <div
           className={cn(
-            "absolute inset-0 overflow-hidden rounded-[7px]",
+            "absolute inset-0 overflow-hidden rounded-sm",
             className
           )}
         >
-          <div className="spinner rounded-full bg-[conic-gradient(from_0deg_at_50%_50%,_rgb(42,67,233)_0deg,_rgba(42,138,246,0)_360deg)]" />
+          <div className="spinner rounded-full bg-[conic-gradient(from_0deg_at_50%_50%,rgba(42,67,233,0.5)_0deg,rgba(42,138,246,0)_360deg)]" />
         </div>
       </div>
       {children}
@@ -85,7 +85,7 @@ const StatusBorder = ({
     <>
       <div
         className={cn(
-          "absolute -left-[1px] -top-[1px] h-[calc(100%+2px)] w-[calc(100%+2px)] rounded-[7px] border-2",
+          "absolute -left-[2px] -top-[2px] h-[calc(100%+4px)] w-[calc(100%+4px)] rounded-md border-3",
           className
         )}
       />
@@ -116,13 +116,13 @@ export const NodeStatusIndicator = ({
       }
     case "success":
       return (
-        <StatusBorder className={cn("border-emerald-600", className)}>
+        <StatusBorder className={cn("border-green-700/50", className)}>
           {children}
         </StatusBorder>
       );
     case "error":
       return (
-        <StatusBorder className={cn("border-red-400", className)}>
+        <StatusBorder className={cn("border-red-700/50", className)}>
           {children}
         </StatusBorder>
       );

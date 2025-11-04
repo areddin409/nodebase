@@ -61,7 +61,7 @@ export const BaseTriggerNode = memo(
           onSettings={onSettings}
         >
           <NodeStatusIndicator
-            status="success"
+            status="loading"
             variant="border"
             className="rounded-l-2xl"
           >
