@@ -75,7 +75,7 @@ export const HttpRequestDialog = ({
         body: defaultBody,
       });
     }
-  }, [open, form, defaultEndpoint, defaultMethod, defaultBody]);
+  }, [open, form.reset, defaultEndpoint, defaultMethod, defaultBody]);
 
   const watchMethod = form.watch("method");
   const showBodyField = ["POST", "PUT", "PATCH"].includes(watchMethod);
