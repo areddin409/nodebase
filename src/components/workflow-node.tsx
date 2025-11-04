@@ -1,7 +1,7 @@
 "use client";
 
 import { NodeToolbar, Position } from "@xyflow/react";
-import { SettingsIcon, TrashIcon } from "lucide-react";
+import { SettingsIcon, Trash2Icon, TrashIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +42,7 @@ export function WorkflowNode({
             aria-label="Delete node"
             title="Delete node"
           >
-            <TrashIcon className="size-4" />
+            <Trash2Icon className="size-4" />
           </Button>
         </NodeToolbar>
       )}

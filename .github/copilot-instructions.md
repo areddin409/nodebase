@@ -18,7 +18,7 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 
 ### Feature-Based Organization
 
-- **Features**: Organized in `src/features/` with subfolders: `auth/`, `editor/`, `subscriptions/`, `workflows/`
+- **Features**: Organized in `src/features/` with subfolders: `auth/`, `editor/`, `executions/`, `subscriptions/`, `triggers/`, `workflows/`
 - **Feature Structure**: Each feature contains `components/`, `hooks/`, `server/` (for tRPC routers), and other domain-specific modules
 - **Cross-Feature**: Shared components in `src/components/`, utilities in `src/lib/`, configuration in `src/config/`
 
@@ -41,7 +41,7 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 - **Main Router**: `src/trpc/routers/_app.ts` exports `AppRouter` type for client
 - **Protected Procedures**: Use `protectedProcedure` - auto-injects session context or throws UNAUTHORIZED
 - **Premium Procedures**: Use `premiumProcedure` - requires active Polar.sh subscription (extends `protectedProcedure`)
-- **Feature Routers**: Each feature exports its own router (e.g., `workflowsRouter`) imported into main router
+- **Feature Routers**: Each feature exports its own router (e.g., `workflowsRouter`) from `server/routers.ts` imported into main router
 - **Inngest Integration**: API procedures trigger background jobs via `inngest.send({ name: "event/name" })`
 - **Error Handling**: tRPC errors automatically handled by client with toast notifications
 
@@ -71,10 +71,16 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 
 ### Commands
 
-- `npm run dev:all` - Start Next.js + Inngest via mprocs (recommended)
+- `npm run dev:all` - Start Next.js + Inngest via mprocs (recommended for full development)
 - `npm run dev` - Next.js only with Turbopack
 - `npm run inngest:dev` - Inngest dev server only
 - `npm run lint` / `npm run format` - Biome (not ESLint/Prettier)
+
+### Development Environment
+
+- **Multi-Process**: Uses `mprocs.yaml` to run Next.js and Inngest concurrently
+- **Package Manager**: Configured for Bun (see mprocs.yaml), but npm/yarn/pnpm also work
+- **Hot Reload**: Turbopack for fast Next.js development with Inngest auto-reload
 
 ### Database Operations
 
@@ -101,8 +107,9 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 
 ## Current State
 
-- Feature-based architecture with workflows, editor, auth, subscriptions
+- Feature-based architecture with workflows, editor, auth, subscriptions, triggers, executions
 - React Flow editor with type-safe node registration system
 - Premium subscription gating via Polar.sh integration
 - Working Inngest integration with multi-provider AI functions and telemetry
 - Dashboard shell with sidebar navigation (workflows, credentials, executions)
+- Multiple AI providers integrated: Google Gemini, OpenAI, Anthropic Claude
