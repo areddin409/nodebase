@@ -45,16 +45,6 @@ import { execute } from "@/inngest/functions";
  * 2. Import it here
  * 3. Add it to the functions array
  *
- * @example
- * ```typescript
- * // Adding a new function:
- * import { newFunction } from "@/inngest/functions";
- *
- * export const { GET, POST, PUT } = serve({
- *   client: inngest,
- *   functions: [execute, newFunction],
- * });
- * ```
  */
 export const { GET, POST, PUT } = serve({
   client: inngest,
