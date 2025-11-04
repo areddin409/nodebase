@@ -6,6 +6,7 @@ import { ManualTriggerDialog } from "./dialog";
 
 export const ManualTriggerNode = memo((props: NodeProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const nodeStatus = "initial"; // TODO: determine status based on trigger state
 
   const handleOpenSettings = () => setDialogOpen(true);
 
@@ -17,7 +18,7 @@ export const ManualTriggerNode = memo((props: NodeProps) => {
         icon={MousePointerIcon}
         name="Manual Trigger"
         description="Click to run workflow"
-        //status={nodeStatus} TODO
+        status={nodeStatus}
         onSettings={handleOpenSettings}
         onDoubleClick={handleOpenSettings}
       />

@@ -8,14 +8,17 @@ import { BaseNode, BaseNodeContent } from "@/components/react-flow/base-node";
 import { BaseHandle } from "@/components/react-flow/base-handle";
 import { WorkflowNode } from "@/components/workflow-node";
 import ConfirmDelete from "@/components/confirm-delete";
-import { NodeStatusIndicator } from "@/components/react-flow/node-status-indicator";
+import {
+  NodeStatus,
+  NodeStatusIndicator,
+} from "@/components/react-flow/node-status-indicator";
 
 interface BaseTriggerNodeProps extends NodeProps {
   icon: LucideIcon | string;
   name: string;
   description?: string;
   children?: ReactNode;
-  // status?: NodeStatus;
+  status?: NodeStatus;
   onSettings?: () => void;
   onDoubleClick?: () => void;
 }
@@ -27,6 +30,7 @@ export const BaseTriggerNode = memo(
     name,
     description,
     children,
+    status = "initial",
     onSettings,
     onDoubleClick,
   }: BaseTriggerNodeProps) => {
@@ -61,11 +65,12 @@ export const BaseTriggerNode = memo(
           onSettings={onSettings}
         >
           <NodeStatusIndicator
-            status="loading"
+            status={status}
             variant="border"
             className="rounded-l-2xl"
           >
             <BaseNode
+              status={status}
               onDoubleClick={onDoubleClick}
               className="rounded-l-2xl relative group"
             >
