@@ -82,7 +82,7 @@ export const AppSidebar = () => {
                 <span className="font-semibold text-sm">Nodebase</span>
               </Link>
             </SidebarMenuButton>
-            {/* <ModeToggle /> */}
+            <ModeToggle />
           </div>
         </SidebarMenuItem>
       </SidebarHeader>

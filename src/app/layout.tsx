@@ -29,13 +29,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TRPCReactProvider>
           <NuqsAdapter>
-            <Provider>{children}</Provider>
+            <Provider>
+              <ThemeProvider>{children}</ThemeProvider>
+            </Provider>
           </NuqsAdapter>
           <Toaster richColors />
         </TRPCReactProvider>

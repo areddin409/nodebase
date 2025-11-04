@@ -26,6 +26,7 @@ import { nodeComponents } from "@/config/node-components";
 import { AddNodeButton } from "./add-node-button";
 import { useSetAtom } from "jotai";
 import { editorAtom } from "../store/atoms";
+import { useTheme } from "next-themes";
 
 /**
  * React Flow Visual Workflow Editor
@@ -136,6 +137,8 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
    * @see {@link https://reactflow.dev/learn/concepts/core-concepts#edges} React Flow Edge Format
    */
   const { data: workflow } = useSuspenseWorkflow(workflowId);
+
+  const { theme } = useTheme();
 
   /**
    * Global Editor State Management
@@ -279,6 +282,7 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         @see {@link https://reactflow.dev/learn/concepts/panel} Panel Component
       */}
       <ReactFlow
+        colorMode={theme === "dark" ? "dark" : "light"}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -337,17 +341,7 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
           
           @see {@link https://reactflow.dev/api-reference/minimap} MiniMap API
         */}
-        <MiniMap
-          // nodeStrokeColor={() => "#D97706"}
-          nodeColor={() => "#D97706"}
-          bgColor="#f8fafc "
-          maskColor=""
-          maskStrokeColor="#D97706"
-          pannable
-          zoomable
-          // position="top-left"
-          // maskColor="#FBBF24"
-        />
+        <MiniMap nodeColor={() => "#D97706"} pannable zoomable />
 
         {/*
           Panel Component
