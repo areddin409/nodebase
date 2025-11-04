@@ -287,7 +287,7 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         nodeTypes={nodeComponents}
         onInit={setEditor}
         fitView
-        snapGrid={[20, 20]}
+        snapGrid={[10, 10]}
         snapToGrid
         panOnScroll
         panOnDrag={false}
@@ -307,6 +307,7 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         <Background
           id="1"
           variant={BackgroundVariant.Dots}
+          // gap={15}
           color="#D97706"
           style={{
             opacity: 0.75,
