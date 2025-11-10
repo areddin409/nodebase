@@ -182,7 +182,6 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     if (["POST", "PUT", "PATCH"].includes(method.toUpperCase())) {
       const template = Handlebars.compile(data.body || "{}");
       const resolved = template(context);
-      console.log("Resolved Body: ", { resolved });
 
       /**
        * JSON Validation
