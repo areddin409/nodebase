@@ -14,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { PRO_SLUG, SIDEBAR_MENU_ITEMS } from "@/config/constants";
@@ -63,28 +64,56 @@ import { ModeToggle } from "./dark-mode-toggle";
 export const AppSidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const { state } = useSidebar();
   const { hasActiveSubscription, subscription, isLoading } =
     useHasActiveSubscription();
+
+  const isCollapsed = state === "collapsed";
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <SidebarMenuItem>
-          <div className="flex items-center gap-x-3">
-            <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
-              <Link href="/" prefetch>
-                <Image
-                  src="/logos/logo.svg"
-                  alt="Nodebase"
-                  width={30}
-                  height={30}
-                />
-                <span className="font-semibold text-sm">Nodebase</span>
-              </Link>
-            </SidebarMenuButton>
-            <ModeToggle />
-          </div>
-        </SidebarMenuItem>
+        {isCollapsed ? (
+          // Collapsed state: Logo and ModeToggle in separate containers, both centered
+          <>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className="h-10 px-3 justify-center">
+                <Link href="/" prefetch>
+                  <Image
+                    src="/logos/logo.svg"
+                    alt="Nodebase"
+                    width={24}
+                    height={24}
+                  />
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <div className="flex justify-center">
+                <ModeToggle />
+              </div>
+            </SidebarMenuItem>
+          </>
+        ) : (
+          // Expanded state: Logo and ModeToggle in flex container
+          <SidebarMenuItem>
+            <div className="flex items-center justify-between gap-x-3 px-3 h-10">
+              <SidebarMenuButton asChild className="gap-x-3 h-10 px-0 flex-1">
+                <Link href="/" prefetch>
+                  <Image
+                    src="/logos/logo.svg"
+                    alt="Nodebase"
+                    width={30}
+                    height={30}
+                    className="ml-2"
+                  />
+                  <span className="font-semibold text-sm">Nodebase</span>
+                </Link>
+              </SidebarMenuButton>
+              <ModeToggle />
+            </div>
+          </SidebarMenuItem>
+        )}
       </SidebarHeader>
       <SidebarContent>
         {SIDEBAR_MENU_ITEMS.map(group => (

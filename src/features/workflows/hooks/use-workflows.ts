@@ -6,6 +6,8 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useWorkflowParams } from "./use-workflows-params";
+import { useAtomValue } from "jotai";
+import { editorAtom } from "@/features/editor/store/atoms";
 
 /**
  * Hook to fetch all workflows using suspense.
@@ -170,6 +172,23 @@ export const useUpdateWorkflow = () => {
       },
       onError: error => {
         toast.error(`Failed to save workflow: ${error.message}`);
+      },
+    })
+  );
+};
+/**
+ * Hook to execute a workflow
+ */
+export const useExecuteWorkflow = () => {
+  const trpc = useTRPC();
+
+  return useMutation(
+    trpc.workflows.execute.mutationOptions({
+      onSuccess: data => {
+        toast.success(`Workflow "${data.name}" executed`);
+      },
+      onError: error => {
+        toast.error(`Failed to execute workflow: ${error.message}`);
       },
     })
   );
