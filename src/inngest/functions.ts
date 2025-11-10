@@ -1,143 +1,141 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createOpenAI } from "@ai-sdk/openai";
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
+import { NonRetriableError } from "inngest";
 import { inngest } from "./client";
-import * as Sentry from "@sentry/nextjs";
+import prisma from "@/lib/db";
+import { topologicalSort } from "./utils";
+import { NodeType } from "@/generated/prisma";
+import { getExecutor } from "@/features/executions/lib/executor-registry";
 
 /**
- * Development Notes
+ * Inngest Background Functions
  *
+ * This module contains all Inngest functions for background processing in the NodeBase
+ * workflow automation platform. Functions handle asynchronous tasks like workflow
+ * execution, node processing, and other background operations.
+ *
+ * Key Dependencies:
+ * - NonRetriableError: Used for validation errors that shouldn't be retried
+ * - Prisma Client: Database access for workflow and node operations
+ * - Inngest Client: Background job processing and step management
+ *
+ * Development Notes:
  * - Use `npx inngest-cli@latest dev` to start the Inngest dev server
  * - Visit `/api/inngest` for the Inngest development UI
- * - All functions are automatically instrumented with Sentry
- * - AI SDK telemetry is sent to Vercel for monitoring
- * - Functions support retries, delays, and complex workflows
+ * - All functions are automatically instrumented with Sentry for monitoring
+ * - Functions support retries, delays, and complex multi-step workflows
+ * - Use step functions for reliable execution and state management
+ * - Use NonRetriableError for validation failures to prevent infinite retries
  *
  * @see https://www.inngest.com/docs - Inngest documentation
- * @see https://sdk.vercel.ai/docs - Vercel AI SDK documentation
  * @see https://docs.sentry.io/platforms/javascript/guides/nextjs/ - Sentry documentation
  */
 
 /**
- * Function Registration
+ * Function Registration Guide
  *
  * To register new Inngest functions:
- * 1. Create the function using inngest.createFunction()
+ * 1. Create the function using inngest.createFunction() with a unique ID
  * 2. Export it from this module
  * 3. Add it to the serve array in /api/inngest/route.ts
+ * 4. Update this documentation to describe the new function
  *
  * @example
  * // In this file:
- * export const myNewFunction = inngest.createFunction(
- *   { id: "my-new-function" },
- *   { event: "my/event" },
+ * export const myWorkflowFunction = inngest.createFunction(
+ *   { id: "my-workflow-function" },
+ *   { event: "workflows/my.event" },
  *   async ({ event, step }) => {
- *     // Function logic here
+ *     await step.run("process-step", async () => {
+ *       // Function logic here
+ *       return { success: true };
+ *     });
  *   }
  * );
  *
  * // In /api/inngest/route.ts:
- * import { execute, myNewFunction } from "@/inngest/functions";
+ * import { executeWorkflow, myWorkflowFunction } from "@/inngest/functions";
  *
  * export const { GET, POST, PUT } = serve({
  *   client: inngest,
- *   functions: [execute, myNewFunction], // Add here
+ *   functions: [executeWorkflow, myWorkflowFunction], // Add here
  * });
  */
-
-// Initialize AI model providers
-/** Google Generative AI client instance */
-const google = createGoogleGenerativeAI();
-
-/** OpenAI client instance */
-const openai = createOpenAI();
-
-/** Anthropic client instance */
-const anthropic = createAnthropic();
 
 /**
- * Execute AI workflow function
+ * Execute Workflow Function
  *
- * This function demonstrates the integration of multiple AI providers (Google Gemini,
- * OpenAI, and Anthropic Claude) within an Inngest background job. It showcases how to:
- * - Use step.ai.wrap() for AI SDK telemetry integration
- * - Handle multiple AI providers in parallel
- * - Log events to Sentry for monitoring
- * - Generate creative content using different AI models
+ * This function handles the background execution of user workflows. It loads the workflow
+ * and its associated nodes/connections from the database and prepares them for execution.
  *
- * @event execute/ai - Triggered when AI execution is requested
- * @returns Object containing responses from all three AI providers
+ * Current Implementation:
+ * - Validates workflowId is provided in event data
+ * - Loads workflow with nodes and connections from database
+ * - Uses NonRetriableError for validation failures to prevent infinite retries
+ * - Returns workflow nodes for further processing
+ *
+ * Future Extensions:
+ * - Node-by-node execution processing based on connections
+ * - State management between workflow steps
+ * - Result persistence and execution status tracking
+ * - Support for different node types and their specific execution logic
+ *
+ * @event workflows/execute.workflow - Triggered when a workflow execution is requested
+ * @param event.data.workflowId - The ID of the workflow to execute (required)
+ * @returns Promise that resolves with workflow nodes and execution metadata
+ * @throws NonRetriableError when workflowId is missing or workflow not found
  *
  * @example
- * // Trigger this function from a tRPC procedure:
+ * // Trigger this function from the workflows tRPC router:
  * await inngest.send({
- *   name: "execute/ai",
- *   data: { userId: session.user.id }
+ *   name: "workflows/execute.workflow",
+ *   data: { workflowId: workflow.id }
  * });
+ *
+ * @todo Implement node execution logic based on node types
+ * @todo Add connection-based execution flow
+ * @todo Add execution result persistence
+ * @todo Add progress tracking and status updates
  */
-export const execute = inngest.createFunction(
-  { id: "execute-ai" },
-  { event: "execute/ai" },
+export const executeWorkflow = inngest.createFunction(
+  { id: "execute-workflow" },
+  { event: "workflows/execute.workflow" },
   async ({ event, step }) => {
-    // Log execution start for monitoring
-    Sentry.logger.info("User triggered test log", {
-      log_source: "sentry_test",
+    const workflowId = event.data.workflowId;
+
+    if (!workflowId) {
+      throw new NonRetriableError("No workflowId provided in event data");
+    }
+
+    await step.run("save-workflow", async () => {});
+
+    const sortedNodes = await step.run("prepare-workflow", async () => {
+      const workflow = await prisma.workflow.findUniqueOrThrow({
+        where: { id: workflowId },
+        include: {
+          nodes: true,
+          connections: true,
+        },
+      });
+
+      return topologicalSort(workflow.nodes, workflow.connections);
     });
 
-    // Execute Google Gemini model with telemetry
-    const { steps: geminiSteps } = await step.ai.wrap(
-      "gemini-generate-text",
-      generateText,
-      {
-        system: "You are a helpful assistant.",
-        prompt: "Generate a creative sonnet about a dinosaur learning to love.",
-        model: google("gemini-2.5-flash"),
-        experimental_telemetry: {
-          isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
-        },
-      }
-    );
+    //Initialize the context with any initial data from the trigger
+    let context = event.data.initialData || {};
 
-    // Execute OpenAI GPT model with telemetry
-    const { steps: openaiSteps } = await step.ai.wrap(
-      "openai-generate-text",
-      generateText,
-      {
-        system: "You are a helpful assistant.",
-        prompt: "Generate a creative sonnet about a dinosaur learning to love.",
-        model: openai("gpt-5"),
-        experimental_telemetry: {
-          isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
-        },
-      }
-    );
+    //execute each node
+    for (const node of sortedNodes) {
+      const executor = getExecutor(node.type as NodeType);
+      context = await executor({
+        data: node.data as Record<string, unknown>,
+        nodeId: node.id,
+        context,
+        step,
+      });
+    }
 
-    // Execute Anthropic Claude model with telemetry
-    const { steps: anthropicSteps } = await step.ai.wrap(
-      "anthropic-generate-text",
-      generateText,
-      {
-        system: "You are a helpful assistant.",
-        prompt: "Generate a creative sonnet about a dinosaur learning to love.",
-        model: anthropic("claude-3-5-haiku-20241022"),
-        experimental_telemetry: {
-          isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
-        },
-      }
-    );
-
-    // Return combined results from all AI providers
     return {
-      geminiSteps,
-      openaiSteps,
-      anthropicSteps,
+      workflowId,
+      result: context,
     };
   }
 );

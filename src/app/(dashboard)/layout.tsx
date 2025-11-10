@@ -1,14 +1,8 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import { ModeToggle } from "@/components/dark-mode-toggle";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+// layout.tsx (stays as Server Component)
+import { DashboardLayoutClient } from "@/components/dashboard-layout-client";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="bg-accent/20">{children}</SidebarInset>
-    </SidebarProvider>
-  );
+  return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
 };
 
 export default Layout;

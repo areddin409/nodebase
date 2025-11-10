@@ -9,18 +9,40 @@ import {
 import { z } from "zod";
 import { PAGINATION } from "@/config/constants";
 import { NodeType } from "@/generated/prisma";
+import { inngest } from "@/inngest/client";
+
 /**
  * Workflows Router
  *
- * This router manages CRUD operations for workflows associated with authenticated users.
+ * This router manages CRUD operations and execution for workflows associated with authenticated users.
  * Key Features:
+ * - Execute Workflow: Triggers workflow execution via Inngest background job for the authenticated user.
  * - Create Workflow: Generates a new workflow with a random name and creates one initial node for the authenticated user (requires premium subscription).
  * - Delete Workflow: Removes a workflow by ID, ensuring it belongs to the authenticated user.
+ * - Update Workflow: Updates workflow nodes and connections, transforming React Flow format to database format.
  * - Update Workflow Name: Allows renaming of a workflow, with validation to ensure the name is not empty.
  * - Get Single Workflow: Retrieves a specific workflow by ID with nodes and connections, transforming them to React Flow compatible format.
  * - Get Multiple Workflows: Lists workflows with pagination and search filtering for the authenticated user.
  */
 export const workflowsRouter = createTRPCRouter({
+  execute: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const workflow = await prisma.workflow.findUniqueOrThrow({
+        where: { id: input.id, userId: ctx.auth.user.id },
+      });
+
+      await inngest.send({
+        name: "workflows/execute.workflow",
+        data: { workflowId: input.id },
+      });
+
+      return workflow;
+    }),
   create: premiumProcedure.mutation(({ ctx }) => {
     return prisma.workflow.create({
       data: {
@@ -47,11 +69,6 @@ export const workflowsRouter = createTRPCRouter({
       });
     }),
 
-  /**
-   * Update Workflow
-   *
-   * This mutation updates the nodes and edges of an existing workflow.
-   */
   update: protectedProcedure
     .input(
       z.object({
