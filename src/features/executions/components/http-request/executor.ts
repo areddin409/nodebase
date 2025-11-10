@@ -36,7 +36,7 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     const options: KyOptions = { method };
 
     if (["POST", "PUT", "PATCH"].includes(method.toUpperCase())) {
-      options.body = data.body;
+      options.body = data.body || "{}";
       options.headers = {
         "Content-Type": "application/json",
       };
