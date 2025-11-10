@@ -168,7 +168,18 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
      * Compiles and executes Handlebars templates for dynamic endpoint URLs.
      * Templates can reference any variable from the current workflow context.
      */
-    const endpoint = Handlebars.compile(data.endpoint)(context);
+    let endpoint: string;
+    try {
+      const template = Handlebars.compile(data.endpoint);
+      endpoint = template(context);
+      if (!endpoint || typeof endpoint !== "string") {
+        throw new Error("Endpoint template did not resolve to a valid string");
+      }
+    } catch (error) {
+      throw new NonRetriableError(
+        `HTTP Request node: Endpoint template error. ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
     const method = data.method;
 
     const options: KyOptions = { method };
