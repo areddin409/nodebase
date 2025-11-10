@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -146,6 +146,40 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
   const [mounted, setMounted] = useState(false);
   const [colorMode, setColorMode] = useState<"light" | "dark">("light");
 
+  // MiniMap visibility state
+  const [isMinimapVisible, setIsMinimapVisible] = useState(false);
+  const minimapTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * Show MiniMap and Auto-Hide Logic
+   *
+   * Shows the minimap when user starts interacting and automatically hides it
+   * after a period of inactivity (2 seconds). This provides navigation help
+   * when needed while keeping the UI clean during normal editing.
+   */
+  const showMinimapTemporarily = useCallback(() => {
+    setIsMinimapVisible(true);
+
+    // Clear existing timer
+    if (minimapTimerRef.current) {
+      clearTimeout(minimapTimerRef.current);
+    }
+
+    // Set new timer to hide minimap after 2 seconds of inactivity
+    minimapTimerRef.current = setTimeout(() => {
+      setIsMinimapVisible(false);
+    }, 3000);
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (minimapTimerRef.current) {
+        clearTimeout(minimapTimerRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -203,6 +237,9 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
    * - Dimension updates
    * - Data property modifications
    *
+   * Shows minimap temporarily when nodes are being manipulated to help
+   * with navigation during complex editing operations.
+   *
    * Uses useCallback for performance optimization to prevent unnecessary
    * re-renders of child components that depend on this handler.
    *
@@ -212,9 +249,19 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
    * @see {@link https://react.dev/reference/react/useCallback#optimizing-a-custom-hook} useCallback Optimization
    */
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) =>
-      setNodes(nodesSnapshot => applyNodeChanges(changes, nodesSnapshot)),
-    []
+    (changes: NodeChange[]) => {
+      // Show minimap when nodes are being moved or manipulated
+      const hasMovement = changes.some(
+        change => change.type === "position" || change.type === "dimensions"
+      );
+
+      if (hasMovement) {
+        showMinimapTemporarily();
+      }
+
+      setNodes(nodesSnapshot => applyNodeChanges(changes, nodesSnapshot));
+    },
+    [showMinimapTemporarily]
   );
 
   /**
@@ -265,6 +312,24 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
     []
   );
 
+  /**
+   * Pan Start Handler
+   *
+   * Shows the minimap when user starts panning to provide navigation context
+   */
+  const onPaneStart = useCallback(() => {
+    showMinimapTemporarily();
+  }, [showMinimapTemporarily]);
+
+  /**
+   * Move Handler
+   *
+   * Shows the minimap during any viewport movement (pan, zoom) to help with navigation
+   */
+  const onMove = useCallback(() => {
+    showMinimapTemporarily();
+  }, [showMinimapTemporarily]);
+
   const hasManualTrigger = useMemo(() => {
     return nodes.some(node => node.type === NodeType.MANUAL_TRIGGER);
   }, [nodes]);
@@ -308,6 +373,8 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onPaneMouseEnter={onPaneStart}
+        onMove={onMove}
         nodeTypes={nodeComponents}
         onInit={setEditor}
         fitView
@@ -355,11 +422,25 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
           MiniMap Component
           
           Displays a small overview of the entire workflow with current viewport indicator.
-          Essential for navigation in large, complex workflows that extend beyond the visible area.
+          Always rendered but visibility controlled via CSS opacity and transform.
+          Shows when user is actively interacting with the editor (panning, moving nodes, etc.) 
+          and smoothly fades away after 2 seconds of inactivity.
+          Features smooth easing transitions for a polished feel.
           
           @see {@link https://reactflow.dev/api-reference/minimap} MiniMap API
         */}
-        <MiniMap nodeColor={() => "#D97706"} pannable zoomable />
+        <MiniMap
+          nodeColor={() => "#D97706"}
+          pannable
+          zoomable
+          style={{
+            transition:
+              "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            opacity: isMinimapVisible ? 1 : 0,
+            transform: isMinimapVisible ? "translateY(0)" : "translateY(8px)",
+            pointerEvents: isMinimapVisible ? "auto" : "none",
+          }}
+        />
 
         {/*
           Panel Component
