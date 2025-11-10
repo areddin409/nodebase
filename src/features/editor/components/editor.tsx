@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -27,6 +27,8 @@ import { AddNodeButton } from "./add-node-button";
 import { useSetAtom } from "jotai";
 import { editorAtom } from "../store/atoms";
 import { useTheme } from "next-themes";
+import { NodeType } from "@/generated/prisma";
+import { ExecutionWorkflowButton } from "./execute-workflow-button";
 
 /**
  * React Flow Visual Workflow Editor
@@ -138,7 +140,21 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
    */
   const { data: workflow } = useSuspenseWorkflow(workflowId);
 
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+
+  // Hydration-safe theme state to prevent SSR/client mismatch
+  const [mounted, setMounted] = useState(false);
+  const [colorMode, setColorMode] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && resolvedTheme) {
+      setColorMode(resolvedTheme === "dark" ? "dark" : "light");
+    }
+  }, [mounted, resolvedTheme]);
 
   /**
    * Global Editor State Management
@@ -249,6 +265,10 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
     []
   );
 
+  const hasManualTrigger = useMemo(() => {
+    return nodes.some(node => node.type === NodeType.MANUAL_TRIGGER);
+  }, [nodes]);
+
   return (
     <div className="size-full">
       {/* 
@@ -282,7 +302,7 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         @see {@link https://reactflow.dev/learn/concepts/panel} Panel Component
       */}
       <ReactFlow
-        colorMode={theme === "dark" ? "dark" : "light"}
+        colorMode={colorMode}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -310,15 +330,13 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         */}
         <Background
           id="1"
-          variant={BackgroundVariant.Dots}
+          // variant={BackgroundVariant.Dots}
           // gap={15}
           color="#D97706"
-          style={{
-            opacity: 0.75,
-          }}
+          // style={{
+          //   opacity: 0.75,
+          // }}
         />
-
-        {/* <Background id="2" /> */}
 
         {/* 
           Controls Component
@@ -354,6 +372,11 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         <Panel position="top-right">
           <AddNodeButton />
         </Panel>
+        {hasManualTrigger && (
+          <Panel position="bottom-center">
+            <ExecutionWorkflowButton workflowId={workflowId} />
+          </Panel>
+        )}
       </ReactFlow>
     </div>
   );
