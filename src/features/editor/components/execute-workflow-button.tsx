@@ -36,7 +36,7 @@ export const ExecutionWorkflowButton = ({
     <Button
       size={"lg"}
       onClick={handleExecute}
-      disabled={executeWorkflow.isPending}
+      disabled={executeWorkflow.isPending || saveWorkflow.isPending}
     >
       <FlaskConicalIcon className="size-4" />
       Execute Workflow
