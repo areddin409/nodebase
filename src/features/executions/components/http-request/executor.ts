@@ -22,6 +22,7 @@ import Handlebars from "handlebars";
 import type { NodeExecutor } from "@/features/executions/types";
 import { NonRetriableError } from "inngest";
 import ky, { type Options as KyOptions } from "ky";
+import { httpRequestChannel } from "@/inngest/channels/http-request";
 
 /**
  * Custom Handlebars Helper: JSON Formatter
@@ -127,8 +128,14 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   nodeId,
   context,
   step,
+  publish,
 }) => {
-  // TODO: Publish 'loading' state for HTTP request
+  await publish(
+    httpRequestChannel().status({
+      nodeId,
+      status: "loading",
+    })
+  );
 
   /**
    * Configuration Validation
@@ -138,133 +145,166 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
    * infinite retry loops in Inngest.
    */
   if (!data.endpoint) {
-    //TODO: publish 'error' state for HTTP request
+    await publish(
+      httpRequestChannel().status({
+        nodeId,
+        status: "error",
+      })
+    );
     throw new NonRetriableError("HTTP Request node: No endpoint configured");
   }
 
   if (!data.variableName) {
-    //TODO: publish 'error' state for HTTP request
+    await publish(
+      httpRequestChannel().status({
+        nodeId,
+        status: "error",
+      })
+    );
     throw new NonRetriableError(
       "HTTP Request node: No variable name configured"
     );
   }
 
   if (!data.method) {
-    //TODO: publish 'error' state for HTTP request
+    await publish(
+      httpRequestChannel().status({
+        nodeId,
+        status: "error",
+      })
+    );
     throw new NonRetriableError("HTTP Request node: No method configured");
   }
 
-  /**
-   * HTTP Request Execution Step
-   *
-   * Uses Inngest's step.run() for reliable execution with automatic retries
-   * and failure handling. The step is named uniquely using the node ID to
-   * enable proper step tracking in Inngest UI.
-   */
-  const result = await step.run(`http-request-${nodeId}`, async () => {
+  try {
     /**
-     * Template Processing
+     * HTTP Request Execution Step
      *
-     * Compiles and executes Handlebars templates for dynamic endpoint URLs.
-     * Templates can reference any variable from the current workflow context.
+     * Uses Inngest's step.run() for reliable execution with automatic retries
+     * and failure handling. The step is named uniquely using the node ID to
+     * enable proper step tracking in Inngest UI.
      */
-    let endpoint: string;
-    try {
-      const template = Handlebars.compile(data.endpoint);
-      endpoint = template(context);
-      if (!endpoint || typeof endpoint !== "string") {
-        throw new Error("Endpoint template did not resolve to a valid string");
-      }
-    } catch (error) {
-      throw new NonRetriableError(
-        `HTTP Request node: Endpoint template error. ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-    }
-    const method = data.method;
-
-    const options: KyOptions = { method };
-
-    /**
-     * Request Body Processing
-     *
-     * For HTTP methods that support request bodies (POST, PUT, PATCH),
-     * processes the body template and validates the resulting JSON.
-     */
-    if (["POST", "PUT", "PATCH"].includes(method.toUpperCase())) {
-      const template = Handlebars.compile(data.body || "{}");
-      const resolved = template(context);
-
+    const result = await step.run(`http-request-${nodeId}`, async () => {
       /**
-       * JSON Validation
+       * Template Processing
        *
-       * Validates that the resolved template produces valid JSON.
-       * This prevents runtime errors when the HTTP client tries to send
-       * malformed JSON to the target API.
+       * Compiles and executes Handlebars templates for dynamic endpoint URLs.
+       * Templates can reference any variable from the current workflow context.
        */
+      let endpoint: string;
       try {
-        JSON.parse(resolved);
+        const template = Handlebars.compile(data.endpoint);
+        endpoint = template(context);
+        if (!endpoint || typeof endpoint !== "string") {
+          throw new Error(
+            "Endpoint template did not resolve to a valid string"
+          );
+        }
       } catch (error) {
         throw new NonRetriableError(
-          `HTTP Request node: Invalid JSON in request body after template resolution. ${error instanceof Error ? error.message : "Unknown error"}`
+          `HTTP Request node: Endpoint template error. ${error instanceof Error ? error.message : "Unknown error"}`
         );
       }
+      const method = data.method;
 
-      options.body = resolved;
-      options.headers = {
-        "Content-Type": "application/json",
+      const options: KyOptions = { method };
+
+      /**
+       * Request Body Processing
+       *
+       * For HTTP methods that support request bodies (POST, PUT, PATCH),
+       * processes the body template and validates the resulting JSON.
+       */
+      if (["POST", "PUT", "PATCH"].includes(method.toUpperCase())) {
+        const template = Handlebars.compile(data.body || "{}");
+        const resolved = template(context);
+
+        /**
+         * JSON Validation
+         *
+         * Validates that the resolved template produces valid JSON.
+         * This prevents runtime errors when the HTTP client tries to send
+         * malformed JSON to the target API.
+         */
+        try {
+          JSON.parse(resolved);
+        } catch (error) {
+          throw new NonRetriableError(
+            `HTTP Request node: Invalid JSON in request body after template resolution. ${error instanceof Error ? error.message : "Unknown error"}`
+          );
+        }
+
+        options.body = resolved;
+        options.headers = {
+          "Content-Type": "application/json",
+        };
+      }
+
+      /**
+       * HTTP Request Execution
+       *
+       * Executes the HTTP request using Ky HTTP client.
+       * Ky provides automatic JSON parsing, timeout handling,
+       * and HTTP error status code handling.
+       */
+      const response = await ky(endpoint, options);
+
+      /**
+       * Response Processing
+       *
+       * Automatically detects response content type and parses accordingly.
+       * JSON responses are parsed as objects, while other content types
+       * are returned as text strings.
+       */
+      const contentType = response.headers.get("content-type") || "";
+      const responseData = contentType.includes("application/json")
+        ? await response.json()
+        : await response.text();
+
+      /**
+       * Response Data Structure
+       *
+       * Creates a standardized response object that includes:
+       * - HTTP status code and status text
+       * - Response data (parsed JSON or raw text)
+       * - Headers and other metadata available through response object
+       */
+      const responsePayload = {
+        httpResponse: {
+          status: response.status,
+          statusText: response.statusText,
+          data: responseData,
+        },
       };
-    }
 
-    /**
-     * HTTP Request Execution
-     *
-     * Executes the HTTP request using Ky HTTP client.
-     * Ky provides automatic JSON parsing, timeout handling,
-     * and HTTP error status code handling.
-     */
-    const response = await ky(endpoint, options);
+      /**
+       * Context Update
+       *
+       * Merges the HTTP response into the workflow context using the
+       * configured variable name. This makes the response data available
+       * to subsequent nodes in the workflow.
+       */
+      return {
+        ...context,
+        [data.variableName]: responsePayload,
+      };
+    });
 
-    /**
-     * Response Processing
-     *
-     * Automatically detects response content type and parses accordingly.
-     * JSON responses are parsed as objects, while other content types
-     * are returned as text strings.
-     */
-    const contentType = response.headers.get("content-type") || "";
-    const responseData = contentType.includes("application/json")
-      ? await response.json()
-      : await response.text();
+    await publish(
+      httpRequestChannel().status({
+        nodeId,
+        status: "success",
+      })
+    );
 
-    /**
-     * Response Data Structure
-     *
-     * Creates a standardized response object that includes:
-     * - HTTP status code and status text
-     * - Response data (parsed JSON or raw text)
-     * - Headers and other metadata available through response object
-     */
-    const responsePayload = {
-      httpResponse: {
-        status: response.status,
-        statusText: response.statusText,
-        data: responseData,
-      },
-    };
-
-    /**
-     * Context Update
-     *
-     * Merges the HTTP response into the workflow context using the
-     * configured variable name. This makes the response data available
-     * to subsequent nodes in the workflow.
-     */
-    return {
-      ...context,
-      [data.variableName]: responsePayload,
-    };
-  });
-
-  // TODO: publish 'success' state for HTTP request
-  return result;
+    return result;
+  } catch (error) {
+    await publish(
+      httpRequestChannel().status({
+        nodeId,
+        status: "error",
+      })
+    );
+    throw error;
+  }
 };
