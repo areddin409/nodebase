@@ -21,13 +21,15 @@ export const SpinnerLoadingIndicator = ({
 }) => {
   return (
     <div className="relative">
-      <StatusBorder className="border-blue-700/40">{children}</StatusBorder>
+      <StatusBorder className="border-blue-500/40 dark:border-blue-400/50">
+        {children}
+      </StatusBorder>
 
       <div className="absolute inset-0 z-50 rounded-[7px] bg-background/50 backdrop-blur-sm" />
       <div className="absolute inset-0 z-50">
-        <span className="absolute left-[calc(50%-1.25rem)] top-[calc(50%-1.25rem)] inline-block h-10 w-10 animate-ping rounded-full bg-blue-700/20" />
+        <span className="absolute left-[calc(50%-1.25rem)] top-[calc(50%-1.25rem)] inline-block h-10 w-10 animate-ping rounded-full bg-blue-500/20 dark:bg-blue-400/30" />
 
-        <LoaderCircle className="absolute left-[calc(50%-0.75rem)] top-[calc(50%-0.75rem)] size-6 animate-spin text-blue-700" />
+        <LoaderCircle className="absolute left-[calc(50%-0.75rem)] top-[calc(50%-0.75rem)] size-6 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     </div>
   );
@@ -66,7 +68,7 @@ export const BorderLoadingIndicator = ({
             className
           )}
         >
-          <div className="spinner rounded-full bg-[conic-gradient(from_0deg_at_50%_50%,rgba(42,67,233,0.5)_0deg,rgba(42,138,246,0)_360deg)]" />
+          <div className="spinner rounded-full bg-[conic-gradient(from_0deg_at_50%_50%,rgba(59,130,246,0.6)_0deg,rgba(59,130,246,0)_360deg)] dark:bg-[conic-gradient(from_0deg_at_50%_50%,rgba(96,165,250,0.7)_0deg,rgba(96,165,250,0)_360deg)]" />
         </div>
       </div>
       {children}
@@ -116,13 +118,20 @@ export const NodeStatusIndicator = ({
       }
     case "success":
       return (
-        <StatusBorder className={cn("border-green-700/50", className)}>
+        <StatusBorder
+          className={cn(
+            "border-green-600/60 dark:border-green-400/70",
+            className
+          )}
+        >
           {children}
         </StatusBorder>
       );
     case "error":
       return (
-        <StatusBorder className={cn("border-red-700/50", className)}>
+        <StatusBorder
+          className={cn("border-red-600/60 dark:border-red-400/70", className)}
+        >
           {children}
         </StatusBorder>
       );
