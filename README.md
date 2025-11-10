@@ -4,7 +4,7 @@
     <h1 style="margin: 0; font-size: 3em;">NodeBase</h1>
   </div>
   
-  **A modern workflow automation platform with visual editor, built on Next.js 15 with tRPC, Better Auth, Prisma, and event-driven architecture**
+  **A modern workflow automation platform with visual node editor that executes workflows as background jobs, built on Next.js 15 with tRPC, Better Auth, Prisma, and event-driven architecture**
 
   <br/>
 
@@ -25,7 +25,9 @@
 - 🔄 **Type-Safe APIs** - End-to-end type safety with [tRPC](https://trpc.io/)
 - ⚡ **Background Jobs** - Event-driven processing with [Inngest](https://inngest.com/)
 - 🤖 **AI Integration** - Multiple AI providers (Google, OpenAI, Anthropic) with telemetry
-- 🎯 **Visual Editor** - React Flow-based workflow editor with custom node types
+- 🎯 **Visual Editor** - React Flow-based workflow editor with custom node types and execution engine
+- 🔄 **Node Execution** - Type-safe executor pattern with background job processing via Inngest
+- 🔗 **Variable Passing** - WorkflowContext system for data flow between workflow nodes
 - 🎯 **Form Management** - Robust forms with [React Hook Form](https://react-hook-form.com/) and [Zod](https://zod.dev/)
 - 🌙 **Dark Mode** - Theme switching with [next-themes](https://github.com/pacocoursey/next-themes)
 - 📱 **Responsive Design** - Mobile-first design with [Tailwind CSS](https://tailwindcss.com/)
@@ -39,7 +41,8 @@
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui + Radix UI
-- **Visual Editor**: React Flow for workflow automation
+- **Visual Editor**: React Flow for workflow automation with node execution engine
+- **Node Execution**: Type-safe executor pattern with WorkflowContext variable passing
 - **Forms**: React Hook Form + Zod validation
 - **State Management**: TanStack Query
 - **Icons**: Lucide React
@@ -49,7 +52,8 @@
 - **API**: tRPC for type-safe APIs
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: Better Auth with Polar.sh subscriptions
-- **Background Jobs**: Inngest for event-driven processing
+- **Background Jobs**: Inngest for event-driven workflow execution and processing
+- **Node Architecture**: Dual implementation pattern (React components + executor functions)
 - **AI Integration**: Google Gemini, OpenAI, Anthropic Claude
 - **Monitoring**: Sentry with Vercel AI SDK telemetry
 - **Validation**: Zod schemas
@@ -59,6 +63,17 @@
 - **Code Quality**: Biome (linting & formatting)
 - **Package Manager**: npm/yarn/pnpm/bun
 - **Build Tool**: Turbopack (Next.js 15)
+
+## 🏗️ Architecture Overview
+
+NodeBase follows a **feature-based architecture** with a sophisticated node execution system:
+
+- **Visual Editor**: React Flow-based interface for creating workflows with drag-and-drop nodes
+- **Dual Node Pattern**: Each node type has both a React component (editor) and executor function (runtime)
+- **Type-Safe Execution**: `NodeExecutor<TData>` interface ensures type safety from editor to execution
+- **Background Processing**: Inngest executes workflows as background jobs with step-by-step reliability
+- **Variable Flow**: `WorkflowContext` system passes data between nodes during execution
+- **Subscription Gating**: Premium features protected via Polar.sh integration
 
 ## 🚀 Quick Start
 
@@ -98,6 +113,18 @@
    # Auth
    BETTER_AUTH_SECRET="your-secret-key"
    BETTER_AUTH_URL="http://localhost:3000"
+
+   # AI Providers (Optional)
+   GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-key"
+   OPENAI_API_KEY="your-openai-key"
+   ANTHROPIC_API_KEY="your-anthropic-key"
+
+   # Polar.sh Subscriptions (Optional)
+   POLAR_ACCESS_TOKEN="your-polar-access-token"
+
+   # Inngest (Optional - for production)
+   INNGEST_EVENT_KEY="your-inngest-event-key"
+   INNGEST_SIGNING_KEY="your-inngest-signing-key"
 
    # Optional: Production settings
    NODE_ENV="development"
@@ -147,13 +174,13 @@ nodebase/
 │   ├── config/           # Configuration files
 │   │   ├── constants.ts  # App constants
 │   │   └── node-components.ts # React Flow node registry
-│   ├── features/         # Feature-based organization
-│   │   ├── auth/         # Authentication features
-│   │   ├── editor/       # Visual workflow editor
-│   │   ├── executions/   # Workflow execution engine
-│   │   ├── subscriptions/# Premium subscription management
-│   │   ├── triggers/     # Workflow triggers
-│   │   └── workflows/    # Workflow CRUD operations
+   ├── features/         # Feature-based organization
+   │   ├── auth/         # Authentication features
+   │   ├── editor/       # Visual workflow editor
+   │   ├── executions/   # Workflow execution engine & node executors
+   │   ├── subscriptions/# Premium subscription management
+   │   ├── triggers/     # Workflow triggers (manual, scheduled, etc.)
+   │   └── workflows/    # Workflow CRUD operations
 │   ├── generated/        # Auto-generated files
 │   │   └── prisma/       # Prisma client
 │   ├── hooks/            # Custom React hooks
@@ -199,6 +226,17 @@ Better Auth is configured in `src/lib/auth.ts` with email/password authenticatio
 ### Background Jobs
 
 Inngest handles event-driven background processing. Visit `/api/inngest` during development to access the Inngest dev UI.
+
+### Workflow Node Development
+
+Adding new node types requires a dual implementation:
+
+1. **React Component** (`src/features/[domain]/components/[node-name]/node.tsx`)
+2. **Executor Function** (`src/features/executions/components/[node-name]/executor.ts`)
+3. **Registry Updates** (both `nodeComponents` and `executorRegistry`)
+4. **Prisma Schema** (add to `NodeType` enum)
+
+Example node types: `HTTP_REQUEST`, `MANUAL_TRIGGER`, `INITIAL`
 
 ### AI Integration
 
@@ -266,17 +304,23 @@ Update this when adding new features to help maintain accurate documentation.
 - [x] Multi-AI provider integration (Google, OpenAI, Anthropic)
 - [x] Sentry monitoring with AI telemetry
 - [x] Multi-process development setup (mprocs)
+- [x] Node execution architecture (dual implementation pattern)
+- [x] WorkflowContext variable passing system
+- [x] NodeExecutor<TData> type-safe interface
 
 ### 🔄 Features in Codebase (Need Documentation Updates):
 
-- [ ] Specific workflow node types and their configurations
-- [ ] Workflow execution engine details
-- [ ] Trigger system implementation
+- [ ] HTTP Request node implementation details
+- [ ] Manual Trigger node implementation details
+- [ ] Workflow execution flow and error handling
+- [ ] Trigger system implementation details
 - [ ] Database schema relationships and models
 - [ ] Custom hooks documentation (use-mobile.ts, etc.)
 - [ ] Specific tRPC procedures and their usage
 - [ ] Auth guard implementation details
 - [ ] Premium subscription flow and gating logic
+- [ ] Inngest step functions and error handling
+- [ ] Node status indicators and real-time updates
 
 ### 📝 Future Documentation TODOs:
 
@@ -290,7 +334,7 @@ Update this when adding new features to help maintain accurate documentation.
 - [ ] Component documentation
 - [ ] Database schema visualization
 
-### 🏷️ Last Updated: November 3, 2025
+### 🏷️ Last Updated: November 10, 2025
 
 ---
 

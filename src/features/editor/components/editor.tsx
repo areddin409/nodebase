@@ -380,6 +380,8 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         fitView
         snapGrid={[10, 10]}
         snapToGrid
+        deleteKeyCode={["Delete", "Backspace"]}
+        selectNodesOnDrag={false}
         panOnScroll
         panOnDrag={false}
         selectionOnDrag
