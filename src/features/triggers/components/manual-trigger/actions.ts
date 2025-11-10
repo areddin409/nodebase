@@ -9,6 +9,11 @@ export type ManualTriggerToken = Realtime.Token<
   ["status"]
 >;
 
+/**
+ * Obtain a realtime subscription token for the manual trigger's "status" topic.
+ *
+ * @returns A `ManualTriggerToken` that can be used to subscribe to realtime "status" updates for the manual trigger channel.
+ */
 export async function fetchManualTriggerRealtimeToken(): Promise<ManualTriggerToken> {
   const token = await getSubscriptionToken(inngest, {
     channel: manualTriggerChannel(),
