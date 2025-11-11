@@ -72,8 +72,8 @@ export const GoogleFormTriggerDialog = ({ open, onOpenChange }: Props) => {
             <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
               <li>Open your Google Form</li>
               <li>Click the three dots menu → Apps Script</li>
-              <li>Copy and paste the script below</li>
-              <li>Replace WEBHOOK_URL with the copied URL above</li>
+              <li>Click "Copy Google Apps Script" button below</li>
+              <li>Paste the script in the Apps Script editor</li>
               <li>Save and click "Triggers" → Add Trigger</li>
               <li>Choose: From form → On form submit → Save</li>
             </ol>
