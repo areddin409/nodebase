@@ -115,6 +115,7 @@ type HttpRequestData = {
  * {
  *   todoId: 1,
  *   apiResponse: {
+ *     data: { id: 1, title: "Learn NodeBase", completed: false },
  *     httpResponse: {
  *       status: 200,
  *       statusText: "OK",
@@ -268,8 +269,13 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
        * - HTTP status code and status text
        * - Response data (parsed JSON or raw text)
        * - Headers and other metadata available through response object
+       *
+       * Also provides direct access to the response data for easier templating
        */
       const responsePayload = {
+        // Direct access to response data for easier use in templates
+        data: responseData,
+        // Full HTTP response details for advanced use cases
         httpResponse: {
           status: response.status,
           statusText: response.statusText,
