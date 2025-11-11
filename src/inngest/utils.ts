@@ -16,6 +16,7 @@
 
 import { Connection, Node } from "@/generated/prisma";
 import toposort from "toposort";
+import { inngest } from "./client";
 
 /**
  * Performs topological sorting on workflow nodes based on their connections.
@@ -136,4 +137,73 @@ export const topologicalSort = (
   return sortedNodeIds
     .map(id => nodeMap.get(id)!) // Non-null assertion: IDs should exist
     .filter(Boolean); // Filter out any undefined values (safety)
+};
+
+/**
+ * Sends a workflow execution event to Inngest for background processing.
+ *
+ * This function triggers the execution of a workflow by sending an event to the
+ * Inngest event system. The workflow will be processed asynchronously in the
+ * background by the "workflows/execute.workflow" Inngest function.
+ *
+ * The function accepts a workflow ID and any additional data that should be
+ * passed to the workflow execution context. This data will be available to
+ * all nodes in the workflow during execution.
+ *
+ * @param data - The workflow execution data
+ * @param data.workflowId - The unique identifier of the workflow to execute
+ * @param data.[key] - Additional data to pass to the workflow execution context
+ * @returns Promise that resolves to the Inngest event send result
+ *
+ * @throws {Error} Inngest client errors - Network issues, invalid data, etc.
+ *
+ * @example
+ * ```typescript
+ * // Execute a workflow with just the workflow ID
+ * await sendWorkflowExecution({
+ *   workflowId: "wf_12345"
+ * });
+ *
+ * // Execute a workflow with additional context data
+ * await sendWorkflowExecution({
+ *   workflowId: "wf_12345",
+ *   userId: "user_67890",
+ *   inputData: { message: "Hello World" },
+ *   triggerSource: "api"
+ * });
+ * ```
+ *
+ * @example
+ * ```typescript
+ * // In a tRPC procedure or API route
+ * const executeWorkflow = async (workflowId: string, triggerData: any) => {
+ *   try {
+ *     const result = await sendWorkflowExecution({
+ *       workflowId,
+ *       triggerData,
+ *       executedAt: new Date().toISOString(),
+ *       source: "manual"
+ *     });
+ *
+ *     console.log("Workflow execution queued:", result);
+ *     return result;
+ *   } catch (error) {
+ *     console.error("Failed to queue workflow execution:", error);
+ *     throw error;
+ *   }
+ * };
+ * ```
+ *
+ * @see {@link https://www.inngest.com/docs/events} - Inngest event sending documentation
+ * @since 1.0.0
+ * @category Workflow Execution
+ */
+export const sendWorkflowExecution = async (data: {
+  workflowId: string;
+  [key: string]: any;
+}) => {
+  return inngest.send({
+    name: "workflows/execute.workflow",
+    data,
+  });
 };

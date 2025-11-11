@@ -1,4 +1,3 @@
-import { channel } from "@inngest/realtime";
 import { NonRetriableError } from "inngest";
 import { inngest } from "./client";
 import prisma from "@/lib/db";
@@ -7,6 +6,7 @@ import { NodeType } from "@/generated/prisma";
 import { getExecutor } from "@/features/executions/lib/executor-registry";
 import { httpRequestChannel } from "./channels/http-request";
 import { manualTriggerChannel } from "./channels/manual-trigger";
+import { googleFormTriggerChannel } from "./channels/google-form-trigger";
 
 /**
  * Inngest Background Functions
@@ -105,7 +105,11 @@ export const executeWorkflow = inngest.createFunction(
   },
   {
     event: "workflows/execute.workflow",
-    channels: [httpRequestChannel(), manualTriggerChannel()],
+    channels: [
+      httpRequestChannel(),
+      manualTriggerChannel(),
+      googleFormTriggerChannel(),
+    ],
   },
 
   async ({ event, step, publish }) => {
@@ -146,7 +150,7 @@ export const executeWorkflow = inngest.createFunction(
 
     return {
       workflowId,
-      result: context,
+      ...context,
     };
   }
 );
