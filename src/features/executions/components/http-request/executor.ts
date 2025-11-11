@@ -269,7 +269,7 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
        * - HTTP status code and status text
        * - Response data (parsed JSON or raw text)
        * - Headers and other metadata available through response object
-       * 
+       *
        * Also provides direct access to the response data for easier templating
        */
       const responsePayload = {
