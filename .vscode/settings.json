@@ -1,3 +1,10 @@
 {
-  "cSpell.words": ["cuid", "Nodebase", "nuqs", "Retriable", "toposort"]
+  "cSpell.words": [
+    "cuid",
+    "livemode",
+    "Nodebase",
+    "nuqs",
+    "Retriable",
+    "toposort"
+  ]
 }

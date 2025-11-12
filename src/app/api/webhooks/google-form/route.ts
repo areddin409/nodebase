@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, status: 200 });
   } catch (error) {
     console.error("Error in Google Form workflow route:", error);
     return NextResponse.json(
