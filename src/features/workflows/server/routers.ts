@@ -15,15 +15,13 @@ import { sendWorkflowExecution } from "@/inngest/utils";
 /**
  * Workflows Router
  *
- * This router manages CRUD operations and execution for workflows associated with authenticated users.
+ * CRUD operations and execution for user workflows with React Flow integration.
+ *
  * Key Features:
- * - Execute Workflow: Triggers workflow execution via Inngest background job for the authenticated user.
- * - Create Workflow: Generates a new workflow with a random name and creates one initial node for the authenticated user (requires premium subscription).
- * - Delete Workflow: Removes a workflow by ID, ensuring it belongs to the authenticated user.
- * - Update Workflow: Updates workflow nodes and connections, transforming React Flow format to database format.
- * - Update Workflow Name: Allows renaming of a workflow, with validation to ensure the name is not empty.
- * - Get Single Workflow: Retrieves a specific workflow by ID with nodes and connections, transforming them to React Flow compatible format.
- * - Get Multiple Workflows: Lists workflows with pagination and search filtering for the authenticated user.
+ * - Workflow execution via Inngest background jobs
+ * - React Flow ↔ database format transformation
+ * - Premium subscription gating for creation
+ * - Pagination and search filtering
  */
 export const workflowsRouter = createTRPCRouter({
   execute: protectedProcedure
@@ -195,17 +193,16 @@ export const workflowsRouter = createTRPCRouter({
         search: z.string().default(""),
       })
     )
+    /**
+     * Fetches a paginated list of workflows for the authenticated user, with optional search filtering.
+     *
+     * @param page - The current page number (default is 1).
+     * @param pageSize - The number of items per page (default is 5, max is 100).
+     * @param search - Optional search term to filter workflows by name.
+     * @returns An object containing the list of workflows, total count, total pages, and pagination flags.
+     */
     .query(async ({ ctx, input }) => {
       const { page, pageSize, search } = input;
-
-      /**
-       * Fetches a paginated list of workflows for the authenticated user, with optional search filtering.
-       *
-       * @param page - The current page number (default is 1).
-       * @param pageSize - The number of items per page (default is 5, max is 100).
-       * @param search - Optional search term to filter workflows by name.
-       * @returns An object containing the list of workflows, total count, total pages, and pagination flags.
-       */
       const [items, totalCount] = await Promise.all([
         prisma.workflow.findMany({
           skip: (page - 1) * pageSize,

@@ -13,6 +13,7 @@ import { CopyIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { generateGoogleFormScript } from "./utils";
+import { requireAuth } from "@/lib/auth-utils";
 
 interface Props {
   open: boolean;
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export const GoogleFormTriggerDialog = ({ open, onOpenChange }: Props) => {
+  // const session = requireAuth();
+
   const params = useParams();
   const workflowId = params?.workflowId as string;
 

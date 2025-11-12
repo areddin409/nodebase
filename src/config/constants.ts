@@ -1,11 +1,20 @@
+/**
+ * Application Configuration Constants
+ *
+ * Centralized configuration for pagination, navigation, and subscription settings.
+ */
+
 import { FolderOpenIcon, HistoryIcon, KeyIcon } from "lucide-react";
 
+/** Pagination defaults for list views */
 export const PAGINATION = {
   DEFAULT_PAGE: 1,
   DEFAULT_PAGE_SIZE: 5,
   MAX_PAGE_SIZE: 100,
   MIN_PAGE_SIZE: 1,
 };
+
+/** Dashboard sidebar navigation structure */
 export const SIDEBAR_MENU_ITEMS = [
   {
     title: "Main",
@@ -39,4 +48,5 @@ export const SIDEBAR_MENU_ITEMS = [
   },
 ];
 
-export const PRO_SLUG = "Nodebase Pro"; // Custom slug for easy reference in Checkout URL, e.g. /checkout/Nodebase-Pro
+/** Polar.sh premium subscription product slug */
+export const PRO_SLUG = "Nodebase Pro";

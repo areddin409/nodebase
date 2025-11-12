@@ -11,92 +11,35 @@ import { googleFormTriggerChannel } from "./channels/google-form-trigger";
 /**
  * Inngest Background Functions
  *
- * This module contains all Inngest functions for background processing in the NodeBase
- * workflow automation platform. Functions handle asynchronous tasks like workflow
- * execution, node processing, and other background operations.
+ * Background job processing for NodeBase workflow automation with reliable execution
+ * and automatic retries for workflow steps.
  *
- * Key Dependencies:
- * - NonRetriableError: Used for validation errors that shouldn't be retried
- * - Prisma Client: Database access for workflow and node operations
- * - Inngest Client: Background job processing and step management
+ * Key Features:
+ * - Workflow execution with topological sorting
+ * - Node-by-node processing with status tracking
+ * - Sentry monitoring and error handling
  *
- * Development Notes:
- * - Use `npx inngest-cli@latest dev` to start the Inngest dev server
- * - Visit `/api/inngest` for the Inngest development UI
- * - All functions are automatically instrumented with Sentry for monitoring
- * - Functions support retries, delays, and complex multi-step workflows
- * - Use step functions for reliable execution and state management
- * - Use NonRetriableError for validation failures to prevent infinite retries
+ * Development:
+ * - Use `npx inngest-cli@latest dev` for local development
+ * - Visit `/api/inngest` for development UI
+ * - Add new functions to `/api/inngest/route.ts` serve array
  *
- * @see https://www.inngest.com/docs - Inngest documentation
- * @see https://docs.sentry.io/platforms/javascript/guides/nextjs/ - Sentry documentation
+ * @see {@link https://www.inngest.com/docs} Inngest Documentation
+ * @see {@link https://docs.sentry.io/platforms/javascript/guides/nextjs/} Sentry Integration
  */
 
 /**
- * Function Registration Guide
+ * Workflow Execution Function
  *
- * To register new Inngest functions:
- * 1. Create the function using inngest.createFunction() with a unique ID
- * 2. Export it from this module
- * 3. Add it to the serve array in /api/inngest/route.ts
- * 4. Update this documentation to describe the new function
+ * Loads workflow from database and executes nodes in topological order based on connections.
+ * Each node runs with proper error handling and status tracking via channels.
  *
- * @example
- * // In this file:
- * export const myWorkflowFunction = inngest.createFunction(
- *   { id: "my-workflow-function" },
- *   { event: "workflows/my.event" },
- *   async ({ event, step }) => {
- *     await step.run("process-step", async () => {
- *       // Function logic here
- *       return { success: true };
- *     });
- *   }
- * );
- *
- * // In /api/inngest/route.ts:
- * import { executeWorkflow, myWorkflowFunction } from "@/inngest/functions";
- *
- * export const { GET, POST, PUT } = serve({
- *   client: inngest,
- *   functions: [executeWorkflow, myWorkflowFunction], // Add here
- * });
- */
-
-/**
- * Execute Workflow Function
- *
- * This function handles the background execution of user workflows. It loads the workflow
- * and its associated nodes/connections from the database and prepares them for execution.
- *
- * Current Implementation:
- * - Validates workflowId is provided in event data
- * - Loads workflow with nodes and connections from database
- * - Uses NonRetriableError for validation failures to prevent infinite retries
- * - Returns workflow nodes for further processing
- *
- * Future Extensions:
- * - Node-by-node execution processing based on connections
- * - State management between workflow steps
- * - Result persistence and execution status tracking
- * - Support for different node types and their specific execution logic
- *
- * @event workflows/execute.workflow - Triggered when a workflow execution is requested
- * @param event.data.workflowId - The ID of the workflow to execute (required)
- * @returns Promise that resolves with workflow nodes and execution metadata
- * @throws NonRetriableError when workflowId is missing or workflow not found
+ * @param event.data.workflowId - Workflow ID to execute
+ * @returns Executed workflow context with results
  *
  * @example
- * // Trigger this function from the workflows tRPC router:
- * await inngest.send({
- *   name: "workflows/execute.workflow",
- *   data: { workflowId: workflow.id }
- * });
- *
- * @todo Implement node execution logic based on node types
- * @todo Add connection-based execution flow
- * @todo Add execution result persistence
- * @todo Add progress tracking and status updates
+ * // Trigger from tRPC:
+ * await inngest.send({ name: "workflows/execute.workflow", data: { workflowId: "wf_123" } });
  */
 export const executeWorkflow = inngest.createFunction(
   {

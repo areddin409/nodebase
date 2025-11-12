@@ -109,6 +109,16 @@ This is a modern Next.js 15 app with tRPC, Better Auth, Prisma, and event-driven
 - **Registry Updates**: Add both to their respective registries (`nodeComponents` and `executorRegistry`)
 - **Type Safety**: Executors use typed data interfaces for node configuration validation
 
+## Documentation Guidelines
+
+- **Module Headers**: Concise overview with key features and external links (Handlebars, Ky, Inngest docs)
+- **Function Docs**: Brief purpose, key parameters, return values, one practical example
+- **Inline Comments**: Short explanatory comments for complex logic, avoid verbose descriptions
+- **Type Definitions**: Simple type comments, don't document every property in detail
+- **External References**: Include links to relevant documentation (@see tags)
+- **Focus on**: Key features, practical examples, integration patterns
+- **Avoid**: Line-by-line explanations, overly verbose descriptions, obvious comments
+
 ## Integration Points
 
 - **Sentry**: Configured in `next.config.ts`, server/edge configs with Vercel AI integration

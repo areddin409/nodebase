@@ -1,5 +1,14 @@
+/**
+ * tRPC React Client Configuration
+ *
+ * Client-side tRPC setup with TanStack Query integration for data fetching.
+ * Handles browser/server query client management and API endpoint resolution.
+ *
+ * @see {@link https://trpc.io/docs/client/react} tRPC React Documentation
+ */
+
 "use client";
-// ^-- to make sure we can mount the Provider from a server component
+
 import type { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
@@ -13,6 +22,7 @@ export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 
 let browserQueryClient: QueryClient;
 
+/** Get or create query client with proper singleton handling */
 function getQueryClient() {
   if (typeof window === "undefined") {
     // Server: always make a new query client
@@ -26,6 +36,7 @@ function getQueryClient() {
   return browserQueryClient;
 }
 
+/** Resolves tRPC API endpoint URL for development and production */
 function getUrl() {
   const base = (() => {
     if (typeof window !== "undefined") return "";
