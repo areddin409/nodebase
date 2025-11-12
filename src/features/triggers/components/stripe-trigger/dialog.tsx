@@ -56,6 +56,15 @@ export const StripeTriggerDialog = ({ nodeId, open, onOpenChange }: Props) => {
   };
 
   const handleSave = () => {
+    // Update node data locally
+    setNodes(nodes =>
+      nodes.map(n =>
+        n.id === nodeId
+          ? { ...n, data: { ...n.data, eventType: selectedEvent } }
+          : n
+      )
+    );
+    // Save workflow to backend
     save();
 
     onOpenChange(false);

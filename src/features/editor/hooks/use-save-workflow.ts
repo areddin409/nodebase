@@ -24,8 +24,8 @@ export const useSaveWorkflow = (workflowId: string) => {
 
   const save = () => {
     if (!editor) {
-      console.warn("Editor instance not available");
-      return;
+      console.error("Editor instance not available");
+      throw new Error("Editor instance not available");
     }
 
     const nodes = editor.getNodes();
